@@ -183,7 +183,7 @@
     <div class="w-step"><span class="w-num">۱</span><span>با دکمه‌های ناوبری یا اسکرول، صحنه‌به‌صحنه جلو برو.</span></div>
     <div class="w-step"><span class="w-num">۲</span><span>روی هر چیزی که نظرت رو جلب کرد بزن تا جزئیاتش رو ببینی.</span></div>
     <div class="w-step"><span class="w-num">۳</span><span>چیزایی که دوست داری رو به سبدت اضافه کن.</span></div>
-    <div class="w-step"><span class="w-num">۴</span><span>آخر بروشور، نشونی و ساعات کاری ما رو پیدا می‌کنی.</span></div>
+    <div class="w-step"><span class="w-num">۴</span><span>آخر بروشور، شماره، نشونی و ساعات کاری ما رو پیدا می‌کنی.</span></div>
     <p class="w-sub" style="margin:14px 0 0;font-size:.85rem;opacity:.85">هر وقت گم شدی، دکمه‌ی «؟ راهنما» پایین صفحه دوباره کمکت می‌کنه.</p>
     <button class="w-cta" type="button" onclick="closeWelcome()">شروع بروشور</button>
   </div>
@@ -715,6 +715,18 @@
                             هر روز از ساعت <span class="text-amber-400 font-black">۱۲ ظهر تا ۱۲ شب</span> بازیم. برای سفارش تلفنی و بیرون‌بر با ما در تماس باشین.
                         </p>
 
+                        <div class="bg-wood-950/90 rounded-2xl p-5 border border-amber-500/25 space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-amber-200/70 font-bold">تلفن سفارش:</span>
+                                <a href="tel:+989134167507" class="text-amber-400 font-black text-lg">۰۹۱۳۴۱۶۷۵۰۷</a>
+                            </div>
+                            <div class="flex items-start justify-between text-sm gap-3">
+                                <span class="text-amber-200/70 font-bold shrink-0">نشانی:</span>
+                                <span class="text-amber-100 text-right leading-relaxed">اصفهان، خیابان پروین، خیابان صباحی، چهارراه سپیده کاشانی، رامین برگر</span>
+                            </div>
+                            <a href="https://www.google.com/maps/search/?api=1&query=%D8%B1%D8%A7%D9%85%DB%8C%D9%86+%D8%A8%D8%B1%DA%AF%D8%B1+%D8%A7%D8%B5%D9%81%D9%87%D8%A7%D9%86+%D8%AE%DB%8C%D8%A7%D8%A8%D8%A7%D9%86+%D9%BE%D8%B1%D9%88%DB%8C%D9%86" target="_blank" rel="noopener" class="block text-center text-xs font-bold text-amber-300 border border-amber-500/30 rounded-xl py-2.5 hover:bg-amber-500/10 transition-all">مشاهده روی نقشه</a>
+                        </div>
+
                         <!-- Interactive Hours Simulator (12 Noon to 12 Midnight) -->
                         <div class="bg-wood-950/90 rounded-2xl p-5 border border-amber-500/25 space-y-4">
                             <div class="flex items-center justify-between">
@@ -905,6 +917,11 @@
                     <span>جمع کل فاکتور:</span>
                     <span id="modalTotalAmount">۰ تومان</span>
                 </div>
+            </div>
+
+            <div class="space-y-2">
+                <a id="waOrderBtn" href="#" target="_blank" rel="noopener" class="block text-center w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm transition-all">سفارش در واتساپ</a>
+                <a href="tel:+989134167507" class="block text-center w-full py-3 rounded-2xl border border-amber-500/40 text-amber-300 font-black text-sm hover:bg-amber-500/10 transition-all">سفارش تلفنی: ۰۹۱۳۴۱۶۷۵۰۷</a>
             </div>
 
             <p class="text-xs text-center text-amber-200/75">
@@ -1516,6 +1533,12 @@
                 ${summaryHtml}
             `;
             document.getElementById('modalTotalAmount').textContent = `${toPersianNum(totalPrice)} تومان`;
+            var waLines = entries.map(([id, qty]) => {
+                var it = menuItems.find(m => m.id === id);
+                return toPersianNum(qty) + '× ' + it.name;
+            });
+            var waText = 'سلام رامین برگر! سفارش من:\n' + waLines.join('\n') + '\nجمع کل: ' + toPersianNum(totalPrice) + ' تومان';
+            document.getElementById('waOrderBtn').href = 'https://wa.me/989134167507?text=' + encodeURIComponent(waText);
 
             const modal = document.getElementById('orderModalOverlay');
             modal.classList.remove('hidden');

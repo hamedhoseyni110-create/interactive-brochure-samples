@@ -823,6 +823,7 @@
 .spot-photo{width:110px;height:110px;object-fit:cover;border-radius:50%;border:2px solid #4ebd74;margin:8px 0;display:none}
 .tray-thumb{width:44px;height:44px;object-fit:cover;border-radius:10px;flex:0 0 44px}
 
+.tray-order-actions{display:flex;flex-direction:column;gap:10px;margin-top:14px}
 </style>
 </head>
 <body>
@@ -834,7 +835,7 @@
     <div class="w-step"><span class="w-num">۱</span><span>با دکمه‌ی «بعدی» یا اسکرول، صحنه‌به‌صحنه جلو برو.</span></div>
     <div class="w-step"><span class="w-num">۲</span><span>روی هر چیزی که نظرت رو جلب کرد بزن تا جزئیاتش رو ببینی.</span></div>
     <div class="w-step"><span class="w-num">۳</span><span>چیزایی که دوست داری رو به سینی‌ات اضافه کن.</span></div>
-    <div class="w-step"><span class="w-num">۴</span><span>آخر بروشور، نشونی و ساعات کاری ما رو پیدا می‌کنی.</span></div>
+    <div class="w-step"><span class="w-num">۴</span><span>آخر بروشور، شماره، نشونی و ساعات کاری ما رو پیدا می‌کنی.</span></div>
     <p class="w-sub" style="margin:14px 0 0;font-size:.85rem;opacity:.85">هر وقت گم شدی، دکمه‌ی «؟ راهنما» پایین صفحه دوباره کمکت می‌کنه.</p>
     <button class="w-cta" type="button" onclick="closeWelcome()">شروع بروشور</button>
   </div>
@@ -1032,7 +1033,7 @@
           <span>هر روز از ۸ صبح تا ۱۱ شب بازیم</span>
         </div>
         <p class="lead-paragraph">
-          هر روز از ۸ صبح تا ۱۱ شب بازیم. ما رو توی محله‌ی بازار قدیم اصفهان پیدا می‌کنین.
+          هر روز از ۸ صبح تا ۱۱ شب بازیم. ما رو توی اصفهان، خیابان خواجه عمید، خیابان حکیم شفایی سوم پیدا می‌کنین.
         </p>
 
         <div class="info-cards">
@@ -1042,14 +1043,18 @@
           </div>
           <div class="info-box">
             <div class="info-box-label">نشانی ما</div>
-            <div class="info-box-val">محله‌ی بازار قدیم اصفهان</div>
+            <div class="info-box-val">اصفهان، خیابان خواجه عمید، خیابان حکیم شفایی سوم</div>
+          </div>
+          <div class="info-box">
+            <div class="info-box-label">تلفن کافه</div>
+            <div class="info-box-val"><a href="tel:+989137816118" style="color:inherit;text-decoration:none">۰۹۱۳۷۸۱۶۱۱۸</a></div>
           </div>
         </div>
 
         <div class="action-row">
           <button class="btn-cinema" type="button" onclick="jumpToScene(0)">بازگشت به ابتدای بروشور</button>
           <button class="btn-ghost" type="button" id="copy-address-btn">کپی نشانی کافه</button>
-          <a class="btn-ghost" style="text-decoration:none;display:inline-block;text-align:center" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%DA%A9%D8%A7%D9%81%D9%87+%D9%86%D9%88%DA%98%D9%87+%D8%A7%D8%B5%D9%81%D9%87%D8%A7%D9%86">مشاهده روی نقشه</a>
+          <a class="btn-ghost" style="text-decoration:none;display:inline-block;text-align:center" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=%DA%A9%D8%A7%D9%81%D9%87+%D9%86%D9%88%DA%98%D9%87+%D8%A7%D8%B5%D9%81%D9%87%D8%A7%D9%86+%D8%AE%DB%8C%D8%A7%D8%A8%D8%A7%D9%86+%D8%AE%D9%88%D8%A7%D8%AC%D9%87+%D8%B9%D9%85%DB%8C%D8%AF">مشاهده روی نقشه</a>
         </div>
       </div>
 
@@ -1119,6 +1124,10 @@
       <div class="tray-total" id="tray-total-row">
         <span>جمع کل انتخاب‌ها:</span>
         <span id="tray-total-price">۰ تومان</span>
+      </div>
+      <div class="tray-order-actions">
+        <a id="waTrayBtn" href="#" target="_blank" rel="noopener" class="btn-cinema" style="text-decoration:none;display:block;text-align:center;opacity:.5">سفارش در واتساپ</a>
+        <a href="tel:+989137816118" class="btn-ghost" style="text-decoration:none;display:block;text-align:center">تماس با کافه: ۰۹۱۳۷۸۱۶۱۱۸</a>
       </div>
     </div>
   </div>
@@ -1343,6 +1352,15 @@
       });
 
       totalEl.textContent = formatToman(sum);
+      var waBtn = document.getElementById('waTrayBtn');
+      if (waBtn) {
+        if (selectedTray.length === 0) { waBtn.href = '#'; waBtn.style.opacity = '.5'; }
+        else {
+          var waLines = selectedTray.map(function(it, ix){ return toPersianDigits(ix+1) + '. ' + it.title + ' \u2014 ' + formatToman(it.price); });
+          waBtn.href = 'https://wa.me/989137816118?text=' + encodeURIComponent('سلام کافه نوژه! سفارش من:\n' + waLines.join('\n') + '\nجمع کل: ' + formatToman(sum));
+          waBtn.style.opacity = '1';
+        }
+      }
     }
 
     // تعامل مرحله‌های «از دونه تا فنجون» در صحنه ۳
