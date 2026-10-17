@@ -15,18 +15,18 @@
     }
 
     :root {
-      --bg-deep: #0f0a07;
-      --bg-warm: #1c120c;
-      --bg-card: rgba(36, 24, 16, 0.78);
-      --gold-primary: #d4a359;
-      --gold-light: #f3d299;
-      --gold-glow: rgba(212, 163, 89, 0.35);
-      --crema: #c88a4b;
-      --espresso: #3b2214;
+      --bg-deep: #071a13;
+      --bg-warm: #0b241b;
+      --bg-card: rgba(11, 36, 27, 0.78);
+      --gold-primary: #4ebd74;
+      --gold-light: #d3e7d9;
+      --gold-glow: rgba(78, 189, 116, 0.35);
+      --crema: #2e7d54;
+      --espresso: #0f2e21;
       --text-main: #f7efe6;
       --text-muted: #b8a390;
-      --saffron: #e89b2d;
-      --border-subtle: rgba(212, 163, 89, 0.22);
+      --saffron: #34c172;
+      --border-subtle: rgba(78, 189, 116, 0.22);
       --transition-slow: 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
@@ -66,7 +66,7 @@
       left: 0;
       width: 100%;
       height: 58px;
-      background: linear-gradient(to bottom, rgba(8, 5, 3, 0.96), rgba(8, 5, 3, 0.75));
+      background: linear-gradient(to bottom, rgba(5, 17, 12, 0.96), rgba(5, 17, 12, 0.75));
       backdrop-filter: blur(10px);
       z-index: 20;
       display: flex;
@@ -113,7 +113,7 @@
     }
 
     .tray-btn {
-      background: rgba(212, 163, 89, 0.14);
+      background: rgba(78, 189, 116, 0.14);
       border: 1px solid var(--gold-primary);
       color: var(--gold-light);
       padding: 6px 14px;
@@ -197,7 +197,7 @@
       display: inline-block;
       color: var(--gold-primary);
       font-size: 0.92rem;
-      background: rgba(212, 163, 89, 0.1);
+      background: rgba(78, 189, 116, 0.1);
       border: 1px solid var(--border-subtle);
       padding: 4px 14px;
       border-radius: 30px;
@@ -254,7 +254,7 @@
 
     .btn-cinema:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(212, 163, 89, 0.55);
+      box-shadow: 0 10px 28px rgba(78, 189, 116, 0.55);
     }
 
     .btn-ghost {
@@ -270,7 +270,7 @@
     }
 
     .btn-ghost:hover {
-      background: rgba(212, 163, 89, 0.12);
+      background: rgba(78, 189, 116, 0.12);
     }
 
     /* قاب تصویرسازی صحنه‌ها */
@@ -280,7 +280,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at center, rgba(212, 163, 89, 0.14) 0%, rgba(28, 18, 12, 0.4) 70%);
+      background: radial-gradient(circle at center, rgba(78, 189, 116, 0.14) 0%, rgba(9, 30, 23, 0.4) 70%);
       border: 1px solid var(--border-subtle);
       border-radius: 28px;
       padding: 28px;
@@ -339,7 +339,7 @@
     }
 
     .step-card.active-step, .step-card:hover {
-      background: rgba(212, 163, 89, 0.16);
+      background: rgba(78, 189, 116, 0.16);
       border-color: var(--gold-primary);
       transform: translateY(-4px);
     }
@@ -426,7 +426,7 @@
 
     .menu-item-card:hover, .menu-item-card.selected {
       border-color: var(--gold-primary);
-      background: rgba(212, 163, 89, 0.13);
+      background: rgba(78, 189, 116, 0.13);
       transform: translateY(-2px);
     }
 
@@ -447,7 +447,7 @@
     .menu-item-price {
       font-size: 0.92rem;
       color: var(--gold-primary);
-      background: rgba(212, 163, 89, 0.12);
+      background: rgba(78, 189, 116, 0.12);
       padding: 2px 10px;
       border-radius: 12px;
       white-space: nowrap;
@@ -469,7 +469,7 @@
     }
 
     .add-order-btn {
-      background: rgba(212, 163, 89, 0.18);
+      background: rgba(78, 189, 116, 0.18);
       border: 1px solid var(--gold-primary);
       color: var(--gold-light);
       padding: 3px 12px;
@@ -574,7 +574,7 @@
       left: 0;
       width: 100%;
       height: 102px;
-      background: linear-gradient(to top, rgba(8, 5, 3, 0.98) 40%, rgba(15, 10, 7, 0.85));
+      background: linear-gradient(to top, rgba(5, 17, 12, 0.98) 40%, rgba(15, 10, 7, 0.85));
       backdrop-filter: blur(12px);
       border-top: 1px solid var(--border-subtle);
       z-index: 30;
@@ -690,7 +690,7 @@
     .chapter-node.active-chapter {
       color: var(--gold-light);
       font-weight: bold;
-      background: rgba(212, 163, 89, 0.14);
+      background: rgba(78, 189, 116, 0.14);
     }
 
     .chapter-node:hover {
@@ -806,9 +806,34 @@
         font-size: 0.74rem;
       }
     }
-  </style>
+  
+/* === راهنمای خوش‌آمد (بروشور تعاملی) === */
+.welcome-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(5,17,12,.96);backdrop-filter:blur(6px);padding:20px;direction:rtl}
+.welcome-card{max-width:560px;width:100%;background:#0b271d;border:1px solid rgba(78,189,116,.4);border-radius:20px;padding:30px 28px;box-shadow:0 24px 80px rgba(0,0,0,.6);text-align:right}
+.welcome-card h2{color:#d3e7d9;font-size:1.6rem;margin:0 0 10px}
+.welcome-card .w-sub{color:#cfe3d6;font-size:.95rem;line-height:1.9;margin:0 0 18px}
+.w-step{display:flex;gap:12px;align-items:flex-start;margin:0 0 12px;color:#cfe3d6;font-size:.92rem;line-height:1.8}
+.w-num{flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#4ebd74;color:#051510;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.85rem;margin-top:2px}
+.w-cta{display:block;width:100%;margin-top:20px;padding:13px;border:none;border-radius:12px;background:#4ebd74;color:#051510;font-weight:800;font-size:1.05rem;cursor:pointer}
+.w-cta:hover{background:#34c172}
+.w-help-fab{position:fixed;bottom:18px;left:18px;z-index:9998;padding:10px 18px;border-radius:999px;border:1px solid rgba(78,189,116,.5);background:#0b271df2;color:#d3e7d9;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+
+</style>
 </head>
 <body>
+
+<div class="welcome-overlay" id="welcome-overlay">
+  <div class="welcome-card">
+    <h2>این بروشور تعاملی چیه؟</h2>
+    <p class="w-sub">این صفحه یه بروشور معمولی نیست؛ یه تجربه‌ی تعاملیه که برای کافه نوژه ساختیم تا قبل از اومدن، کافه رو حس کنی: منوی زنده، داستان قهوه، و دعوت به حضور.</p>
+    <div class="w-step"><span class="w-num">۱</span><span>با دکمه‌ی «پرده‌ی بعدی» یا نوار زمان پایین صفحه، صحنه‌به‌صحنه جلو برو — مثل ورق زدن یه مجله‌ی زنده.</span></div>
+    <div class="w-step"><span class="w-num">۲</span><span>روی هر چیزی که توجهت رو جلب کرد کلیک کن: آیتم‌های منو، مراحل دم‌آوری، داستان کافه.</span></div>
+    <div class="w-step"><span class="w-num">۳</span><span>از «سینی انتخاب‌های من» بالای صفحه می‌تونی نوشیدنی‌ها و خوراکی‌های دلخواهت رو جمع کنی.</span></div>
+    <button class="w-cta" type="button" onclick="closeWelcome()">شروع بروشور</button>
+  </div>
+</div>
+<button class="w-help-fab" type="button" onclick="openWelcome()">؟ راهنما</button>
+
 
   <!-- بوم ذرات سینمایی قهوه و طلا -->
   <canvas id="cinema-particles"></canvas>
@@ -848,22 +873,22 @@
         <svg class="svg-illustration" viewBox="0 0 260 260" fill="none">
           <!-- حلقه فیلم سینمایی چرخان -->
           <g class="film-ring">
-            <circle cx="130" cy="130" r="112" stroke="#d4a359" stroke-width="1.5" stroke-dasharray="10 8" opacity="0.5"/>
-            <circle cx="130" cy="130" r="96" stroke="#c88a4b" stroke-width="1" opacity="0.3"/>
+            <circle cx="130" cy="130" r="112" stroke="#4ebd74" stroke-width="1.5" stroke-dasharray="10 8" opacity="0.5"/>
+            <circle cx="130" cy="130" r="96" stroke="#2e7d54" stroke-width="1" opacity="0.3"/>
           </g>
           <!-- بخار گرم قهوه -->
-          <path class="steam-line" d="M110 72 C102 52, 120 40, 112 20" stroke="#f3d299" stroke-width="2.5" stroke-linecap="round"/>
-          <path class="steam-line" d="M130 66 C122 44, 142 34, 132 14" stroke="#d4a359" stroke-width="3" stroke-linecap="round"/>
-          <path class="steam-line" d="M150 74 C144 54, 160 44, 152 24" stroke="#f3d299" stroke-width="2.5" stroke-linecap="round"/>
+          <path class="steam-line" d="M110 72 C102 52, 120 40, 112 20" stroke="#d3e7d9" stroke-width="2.5" stroke-linecap="round"/>
+          <path class="steam-line" d="M130 66 C122 44, 142 34, 132 14" stroke="#4ebd74" stroke-width="3" stroke-linecap="round"/>
+          <path class="steam-line" d="M150 74 C144 54, 160 44, 152 24" stroke="#d3e7d9" stroke-width="2.5" stroke-linecap="round"/>
           <!-- نعلبکی و فنجان طلایی -->
-          <ellipse cx="130" cy="198" rx="76" ry="14" fill="#2b1910" stroke="#d4a359" stroke-width="2"/>
-          <path d="M78 106 H182 V146 C182 176 158 194 130 194 C102 194 78 176 78 146 Z" fill="url(#cupGrad)" stroke="#f3d299" stroke-width="2.5"/>
-          <path d="M182 118 H198 C208 118 214 126 214 136 C214 146 206 154 196 154 H180" stroke="#f3d299" stroke-width="4" stroke-linecap="round"/>
-          <ellipse cx="130" cy="106" rx="52" ry="11" fill="#4a2c18" stroke="#f3d299" stroke-width="2"/>
-          <ellipse cx="130" cy="106" rx="42" ry="7" fill="#c88a4b"/>
+          <ellipse cx="130" cy="198" rx="76" ry="14" fill="#2b1910" stroke="#4ebd74" stroke-width="2"/>
+          <path d="M78 106 H182 V146 C182 176 158 194 130 194 C102 194 78 176 78 146 Z" fill="url(#cupGrad)" stroke="#d3e7d9" stroke-width="2.5"/>
+          <path d="M182 118 H198 C208 118 214 126 214 136 C214 146 206 154 196 154 H180" stroke="#d3e7d9" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="130" cy="106" rx="52" ry="11" fill="#4a2c18" stroke="#d3e7d9" stroke-width="2"/>
+          <ellipse cx="130" cy="106" rx="42" ry="7" fill="#2e7d54"/>
           <defs>
             <linearGradient id="cupGrad" x1="78" y1="106" x2="182" y2="194" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#3b2214"/>
+              <stop offset="0%" stop-color="#0f2e21"/>
               <stop offset="100%" stop-color="#1a0e08"/>
             </linearGradient>
           </defs>
@@ -889,19 +914,19 @@
       <div class="visual-box">
         <svg class="svg-illustration" viewBox="0 0 260 260" fill="none">
           <!-- بدنه دستگاه اسپرسوساز کلاسیک -->
-          <rect x="56" y="42" width="148" height="176" rx="16" fill="#261710" stroke="#d4a359" stroke-width="2.5"/>
-          <rect x="70" y="56" width="120" height="44" rx="8" fill="#160d08" stroke="#c88a4b" stroke-width="1.5"/>
+          <rect x="56" y="42" width="148" height="176" rx="16" fill="#261710" stroke="#4ebd74" stroke-width="2.5"/>
+          <rect x="70" y="56" width="120" height="44" rx="8" fill="#160d08" stroke="#2e7d54" stroke-width="1.5"/>
           <!-- درجه فشارسنج -->
-          <circle cx="130" cy="78" r="16" fill="#0f0a07" stroke="#f3d299" stroke-width="2"/>
-          <line id="pressure-needle" x1="130" y1="78" x2="140" y2="68" stroke="#e89b2d" stroke-width="2.5" stroke-linecap="round" style="transform-origin: 130px 78px; transition: transform 0.6s ease;"/>
+          <circle cx="130" cy="78" r="16" fill="#071a13" stroke="#d3e7d9" stroke-width="2"/>
+          <line id="pressure-needle" x1="130" y1="78" x2="140" y2="68" stroke="#34c172" stroke-width="2.5" stroke-linecap="round" style="transform-origin: 130px 78px; transition: transform 0.6s ease;"/>
           <!-- پرتافیلتر و ریزش اسپرسو -->
-          <rect x="108" y="114" width="44" height="18" rx="4" fill="#d4a359"/>
-          <line x1="152" y1="123" x2="196" y2="123" stroke="#f3d299" stroke-width="6" stroke-linecap="round"/>
+          <rect x="108" y="114" width="44" height="18" rx="4" fill="#4ebd74"/>
+          <line x1="152" y1="123" x2="196" y2="123" stroke="#d3e7d9" stroke-width="6" stroke-linecap="round"/>
           <!-- جریان طلایی قهوه -->
-          <path id="espresso-stream" d="M122 132 V176 M138 132 V176" stroke="#c88a4b" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
+          <path id="espresso-stream" d="M122 132 V176 M138 132 V176" stroke="#2e7d54" stroke-width="3.5" stroke-linecap="round" opacity="0.85"/>
           <!-- فنجان زیر دستگاه -->
-          <path d="M102 174 H158 L152 208 H108 Z" fill="#3b2214" stroke="#f3d299" stroke-width="2"/>
-          <line x1="44" y1="218" x2="216" y2="218" stroke="#d4a359" stroke-width="3" stroke-linecap="round"/>
+          <path d="M102 174 H158 L152 208 H108 Z" fill="#0f2e21" stroke="#d3e7d9" stroke-width="2"/>
+          <line x1="44" y1="218" x2="216" y2="218" stroke="#4ebd74" stroke-width="3" stroke-linecap="round"/>
         </svg>
         <span id="espresso-status-label" style="font-size: 0.86rem; color: var(--gold-light); margin-top: 10px;">فشار عصاره‌گیری: ۹ بار استاندارد سینمایی</span>
       </div>
@@ -937,11 +962,11 @@
 
       <div class="visual-box">
         <svg class="svg-illustration" viewBox="0 0 260 260" fill="none">
-          <circle cx="130" cy="130" r="98" stroke="#d4a359" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.4"/>
+          <circle cx="130" cy="130" r="98" stroke="#4ebd74" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.4"/>
           <!-- دانه قهوه مرکزی -->
           <g id="craft-svg-group" style="transition: transform 0.5s ease; transform-origin: center;">
-            <ellipse cx="130" cy="130" rx="54" ry="74" transform="rotate(-18 130 130)" fill="#3b2214" stroke="#f3d299" stroke-width="3"/>
-            <path d="M114 62 C144 105, 110 155, 144 198" stroke="#d4a359" stroke-width="4" stroke-linecap="round"/>
+            <ellipse cx="130" cy="130" rx="54" ry="74" transform="rotate(-18 130 130)" fill="#0f2e21" stroke="#d3e7d9" stroke-width="3"/>
+            <path d="M114 62 C144 105, 110 155, 144 198" stroke="#4ebd74" stroke-width="4" stroke-linecap="round"/>
           </g>
         </svg>
         <span id="craft-caption" style="font-size: 0.9rem; color: var(--gold-primary); margin-top: 10px;">مزارع تک‌خاستگاه • تازگی هفتگی</span>
@@ -973,11 +998,11 @@
           <div class="menu-spotlight" id="spotlight-panel">
             <span class="spotlight-badge" id="spot-badge">امضای کافه نوژه</span>
             <svg width="110" height="110" viewBox="0 0 120 120" fill="none" style="margin: 8px 0;">
-              <circle cx="60" cy="60" r="50" fill="rgba(212,163,89,0.12)" stroke="#d4a359" stroke-width="1.5"/>
-              <path d="M36 52 H84 V70 C84 85 73 94 60 94 C47 94 36 85 36 70 Z" fill="#3b2214" stroke="#f3d299" stroke-width="2"/>
-              <ellipse cx="60" cy="52" rx="24" ry="6" fill="#e89b2d" stroke="#f3d299" stroke-width="1.5"/>
-              <path class="steam-line" d="M52 38 C48 28, 58 22, 54 14" stroke="#f3d299" stroke-width="2" stroke-linecap="round"/>
-              <path class="steam-line" d="M68 40 C64 30, 74 24, 70 16" stroke="#d4a359" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="60" cy="60" r="50" fill="rgba(78,189,116,0.12)" stroke="#4ebd74" stroke-width="1.5"/>
+              <path d="M36 52 H84 V70 C84 85 73 94 60 94 C47 94 36 85 36 70 Z" fill="#0f2e21" stroke="#d3e7d9" stroke-width="2"/>
+              <ellipse cx="60" cy="52" rx="24" ry="6" fill="#34c172" stroke="#d3e7d9" stroke-width="1.5"/>
+              <path class="steam-line" d="M52 38 C48 28, 58 22, 54 14" stroke="#d3e7d9" stroke-width="2" stroke-linecap="round"/>
+              <path class="steam-line" d="M68 40 C64 30, 74 24, 70 16" stroke="#4ebd74" stroke-width="2" stroke-linecap="round"/>
             </svg>
             <div>
               <h3 class="spotlight-title" id="spot-title">لته زعفرانی</h3>
@@ -1023,17 +1048,17 @@
         <!-- تصویرسازی طاق بازار قدیم اصفهان و فنجان قهوه -->
         <svg class="svg-illustration" viewBox="0 0 260 260" fill="none">
           <!-- طاق سنتی اصفهان -->
-          <path d="M46 220 V118 C46 66 130 34 130 34 C130 34 214 66 214 118 V220" fill="#1c120c" stroke="#d4a359" stroke-width="2.5"/>
-          <path d="M68 220 V126 C68 84 130 58 130 58 C130 58 192 84 192 126 V220" stroke="#c88a4b" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <path d="M46 220 V118 C46 66 130 34 130 34 C130 34 214 66 214 118 V220" fill="#0b241b" stroke="#4ebd74" stroke-width="2.5"/>
+          <path d="M68 220 V126 C68 84 130 58 130 58 C130 58 192 84 192 126 V220" stroke="#2e7d54" stroke-width="1.5" stroke-dasharray="6 4"/>
           <!-- چراغ آویز سنتی بازار -->
-          <line x1="130" y1="34" x2="130" y2="82" stroke="#f3d299" stroke-width="2"/>
-          <polygon points="116,82 144,82 152,104 108,104" fill="#e89b2d" opacity="0.85" stroke="#f3d299" stroke-width="1.5"/>
-          <circle cx="130" cy="108" r="18" fill="rgba(232,155,45,0.25)"/>
+          <line x1="130" y1="34" x2="130" y2="82" stroke="#d3e7d9" stroke-width="2"/>
+          <polygon points="116,82 144,82 152,104 108,104" fill="#34c172" opacity="0.85" stroke="#d3e7d9" stroke-width="1.5"/>
+          <circle cx="130" cy="108" r="18" fill="rgba(52,193,114,0.25)"/>
           <!-- میز دو نفره کافه در دل بازار -->
-          <line x1="92" y1="184" x2="168" y2="184" stroke="#f3d299" stroke-width="3" stroke-linecap="round"/>
-          <line x1="130" y1="184" x2="130" y2="220" stroke="#d4a359" stroke-width="3"/>
-          <path d="M118 168 H142 L139 182 H121 Z" fill="#c88a4b" stroke="#f3d299" stroke-width="1.5"/>
-          <line x1="32" y1="220" x2="228" y2="220" stroke="#d4a359" stroke-width="3" stroke-linecap="round"/>
+          <line x1="92" y1="184" x2="168" y2="184" stroke="#d3e7d9" stroke-width="3" stroke-linecap="round"/>
+          <line x1="130" y1="184" x2="130" y2="220" stroke="#4ebd74" stroke-width="3"/>
+          <path d="M118 168 H142 L139 182 H121 Z" fill="#2e7d54" stroke="#d3e7d9" stroke-width="1.5"/>
+          <line x1="32" y1="220" x2="228" y2="220" stroke="#4ebd74" stroke-width="3" stroke-linecap="round"/>
         </svg>
         <span id="copy-feedback" style="font-size: 0.86rem; color: var(--gold-light); margin-top: 10px;">بروشور نمونه‌ی کافه نوژه • اصفهان</span>
       </div>
@@ -1469,7 +1494,7 @@
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 163, 89, ${p.alpha})`;
+        ctx.fillStyle = `rgba(78, 189, 116, ${p.alpha})`;
         ctx.fill();
       });
       requestAnimationFrame(animateParticles);
@@ -1479,5 +1504,12 @@
     renderMenuCards();
     animateParticles();
   </script>
+
+<script>
+function openWelcome(){var o=document.getElementById('welcome-overlay');if(o){o.style.display='flex';document.body.style.overflow='hidden';}}
+function closeWelcome(){var o=document.getElementById('welcome-overlay');if(o){o.style.display='none';document.body.style.overflow='';}}
+window.addEventListener('DOMContentLoaded',function(){openWelcome();});
+</script>
+
 </body>
 </html>
