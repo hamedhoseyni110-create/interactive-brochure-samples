@@ -170,7 +170,7 @@
             transform-origin: right center;
         }
         .notebook-open .notebook-cover {
-            transform: perspective(800px) rotateY(-145deg);
+            transform: perspective(800px) rotateY(-145deg) scale(0.55);
         }
     </style>
 </head>
@@ -184,11 +184,11 @@
     <div class="w-step"><span class="w-num">۲</span><span>روی هر چیزی که نظرت رو جلب کرد بزن تا جزئیاتش رو ببینی.</span></div>
     <div class="w-step"><span class="w-num">۳</span><span>چیزایی که دوست داری رو به سبدت اضافه کن.</span></div>
     <div class="w-step"><span class="w-num">۴</span><span>آخر بروشور، شماره، نشونی و ساعات کاری ما رو پیدا می‌کنی.</span></div>
-    <p class="w-sub" style="margin:14px 0 0;font-size:.85rem;opacity:.85">هر وقت گم شدی، دکمه‌ی «؟ راهنما» پایین صفحه دوباره کمکت می‌کنه.</p>
+    <p class="w-sub" style="margin:14px 0 0;font-size:.85rem;opacity:.85">هر وقت گم شدی، دکمه‌ی «راهنما ؟» پایین صفحه دوباره کمکت می‌کنه.</p>
     <button class="w-cta" type="button" onclick="closeWelcome()">شروع بروشور</button>
   </div>
 </div>
-<button class="w-help-fab" type="button" onclick="openWelcome()">؟ راهنما</button>
+<button class="w-help-fab" type="button" onclick="openWelcome()">راهنما ؟</button>
 
 
     <!-- Background Ember & Smoke Particle Canvas -->
@@ -414,7 +414,7 @@
                                     <circle cx="255" cy="189" r="2.5" fill="#7c2d12"/>
                                 </g>
 
-                                <!-- LAYER 1 (Top): Fresh Sesame Crown Bun (نون تازه صبحگاهی) -->
+                                <!-- LAYER 1 (Top): Fresh Sesame Crown Bun (نان تازه صبحگاهی) -->
                                 <g id="layer-top-bun" class="burger-layer" onclick="selectBurgerLayer('نون تازه (پخت هر صبح)', 'نان برگر طلایی با کنجدهای برشته که هر روز صبح پخته می‌شود تا عطر نان تازه اولین حس هر گاز باشد.')" filter="url(#warmShadow)">
                                     <ellipse cx="210" cy="162" rx="132" ry="20" fill="#fde68a"/>
                                     <path d="M78 162 C78 82, 138 62, 210 62 C282 62, 342 82, 342 162 Z" fill="url(#topBunGrad)"/>
@@ -642,7 +642,7 @@
                             همه آیتم‌ها (۶)
                         </button>
                         <button onclick="filterMenu('burger')" id="filter-burger" class="menu-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold text-amber-200 hover:bg-wood-800 transition-all">
-                            برگرهای دست‌ساز (۴)
+                            برگر‌های دست‌ساز (۴)
                         </button>
                         <button onclick="filterMenu('side')" id="filter-side" class="menu-filter-btn px-4 py-1.5 rounded-xl text-xs font-bold text-amber-200 hover:bg-wood-800 transition-all">
                             کنار برگر و نوشیدنی (۲)
@@ -965,7 +965,7 @@
                 desc: 'گوشت گریل، پنیر چدار، کاهو و گوجه',
                 category: 'burger',
                 badge: 'پرفروش کلاسیک',
-                ingredients: ['گوشت گریل تازه', 'پنیر چدار ذوب‌شده', 'کاهو و گوجه تازه', 'نون تازه صبحگاهی', 'سس مخصوص']
+                ingredients: ['گوشت گریل تازه', 'پنیر چدار ذوب‌شده', 'کاهو و گوجه تازه', 'نان تازه صبحگاهی', 'سس مخصوص']
             },
             {
                 id: 'german-burger',
@@ -976,7 +976,7 @@
                 desc: 'سوسیس دودی، کلم قرمز، سس خردل',
                 category: 'burger',
                 badge: 'امضای رامین برگر',
-                ingredients: ['سوسیس دودی آلمانی', 'کلم قرمز سرکه‌ای', 'سس خردل اصیل', 'نون تازه صبحگاهی']
+                ingredients: ['سوسیس دودی آلمانی', 'کلم قرمز سرکه‌ای', 'سس خردل اصیل', 'نان تازه صبحگاهی']
             },
             {
                 id: 'double-cheese',
@@ -1030,10 +1030,7 @@
         let autoTourInterval = null;
         let currentMenuFilter = 'all';
         let selectedSpotlightId = 'german-burger';
-        let orderCart = {
-            'german-burger': 1,
-            'special-fries': 1
-        };
+        let orderCart = {};;
         let selectedOrderMethod = 'سفارش تلفنی';
         let soundEnabled = true;
         let audioCtx = null;
@@ -1111,7 +1108,7 @@
 
             const statusText = pct === 0
                 ? 'فشرده و آماده گاز زدن (۰٪)'
-                : `باز شده (${toPersianNum(Math.round(pct))}٪)`;
+                : `باز شده \u2066${toPersianNum(Math.round(pct))}٪\u2069`;
             document.getElementById('explosionPercentLabel').textContent = statusText;
 
             // Apply smooth vertical separation to each SVG layer
@@ -1578,7 +1575,7 @@
 
         function jumpToScene(sceneIdx) {
             playUiSound('pop');
-            const targetProgressMap = [0, 30, 58, 88];
+            const targetProgressMap = [0, 33, 66, 100];
             timelineProgress = targetProgressMap[sceneIdx] || 0;
             document.getElementById('masterTimelineScrubber').value = timelineProgress;
             switchActiveSceneDOM(sceneIdx);
@@ -1605,7 +1602,7 @@
 
         function updateTimelineUI() {
             document.getElementById('timelineProgressText').textContent =
-                `صحنه ${toPersianNum(currentSceneIndex + 1)} از ۴ (${toPersianNum(Math.round(timelineProgress))}٪)`;
+                `صحنه ${toPersianNum(currentSceneIndex + 1)} از ۴ (\u2066${toPersianNum(Math.round(timelineProgress))}٪\u2069)`;
 
             for (let i = 0; i < 4; i++) {
                 const navBtn = document.getElementById(`navBtn${i}`);

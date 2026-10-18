@@ -911,7 +911,7 @@
         <span class="eyebrow">از سال ۱۳۹۸ تا امروز</span>
         <h2 class="main-heading">داستان ما</h2>
         <p class="lead-paragraph">
-          کافه نوژه از سال ۱۳۹۸ با یه دستگاه اسپرسوساز کوچیک و یه باور لجباز شروع کرد: قهوه‌ی خوب، سزاوار یه صحنه‌ی خوبه. امروز باریستاهای ما ماه‌ها تمرین می‌کنن، دونه‌ها هر هفته از مزارع تک‌خاستگاه می‌رسن و هر نوشیدنی مثل یه صحنه‌ی فیلم ساخته می‌شه.
+          کافه نوژه از سال ۱۳۹۸ با یه دستگاه اسپرسوساز کوچیک و یه باور لجباز شروع کرد: قهوه‌ی خوب، سزاوار یه صحنه‌ی خوبه. امروز باریستا‌های ما ماه‌ها تمرین می‌کنن، دونه‌ها هر هفته از مزارع تک‌خاستگاه می‌رسن و هر نوشیدنی مثل یه صحنه‌ی فیلم ساخته می‌شه.
         </p>
         <div class="action-row">
           <button class="btn-cinema" type="button" id="brew-shot-btn">عصاره‌گیری آزمایشی اسپرسو</button>
@@ -958,12 +958,12 @@
           <div class="step-card" onclick="selectCraftStep(1, this)">
             <div class="step-num">پرده‌ی دوم</div>
             <div class="step-title">برشته‌کاری</div>
-            <div class="step-desc">بیداری عطرهای پنهان و نت‌های شکلاتی و طلایی</div>
+            <div class="step-desc">بیداری عطر‌های پنهان و نت‌های شکلاتی و طلایی</div>
           </div>
           <div class="step-card" onclick="selectCraftStep(2, this)">
             <div class="step-num">پرده‌ی سوم</div>
             <div class="step-title">دم‌آوری</div>
-            <div class="step-desc">ماه‌ها تمرین باریستاها برای خلق یه صحنه‌ی کامل</div>
+            <div class="step-desc">ماه‌ها تمرین باریستا‌ها برای خلق یه صحنه‌ی کامل</div>
           </div>
         </div>
       </div>
@@ -1304,6 +1304,7 @@
         emptyMsg.textContent = 'هنوز نوشیدنی یا خوراکی از منوی ویژه انتخاب نکرده‌اید.';
         listEl.appendChild(emptyMsg);
         totalEl.textContent = formatToman(0);
+        updateTrayOrderBtn(0);
         return;
       }
 
@@ -1352,14 +1353,23 @@
       });
 
       totalEl.textContent = formatToman(sum);
+      updateTrayOrderBtn(sum);
+    }
+
+    function updateTrayOrderBtn(sum) {
       var waBtn = document.getElementById('waTrayBtn');
-      if (waBtn) {
-        if (selectedTray.length === 0) { waBtn.href = '#'; waBtn.style.opacity = '.5'; }
-        else {
-          var waLines = selectedTray.map(function(it, ix){ return toPersianDigits(ix+1) + '. ' + it.title + ' \u2014 ' + formatToman(it.price); });
-          waBtn.href = 'https://wa.me/989137816118?text=' + encodeURIComponent('سلام کافه نوژه! سفارش من:\n' + waLines.join('\n') + '\nجمع کل: ' + formatToman(sum));
-          waBtn.style.opacity = '1';
-        }
+      if (!waBtn) return;
+      if (selectedTray.length === 0) {
+        waBtn.href = '#';
+        waBtn.style.opacity = '.5';
+        waBtn.style.pointerEvents = 'none';
+        waBtn.setAttribute('aria-disabled', 'true');
+      } else {
+        var waLines = selectedTray.map(function(it, ix){ return toPersianDigits(ix+1) + '. ' + it.title + ' \u2014 ' + formatToman(it.price); });
+        waBtn.href = 'https://wa.me/989137816118?text=' + encodeURIComponent('سلام کافه نوژه! سفارش من:\n' + waLines.join('\n') + '\nجمع کل: ' + formatToman(sum));
+        waBtn.style.opacity = '1';
+        waBtn.style.pointerEvents = 'auto';
+        waBtn.removeAttribute('aria-disabled');
       }
     }
 
@@ -1376,8 +1386,8 @@
         rotate: 'rotate(18deg) scale(1.08)'
       },
       {
-        text: 'پرده‌ی سوم (دم‌آوری): امروز باریستاهای ما ماه‌ها تمرین می‌کنن تا هر نوشیدنی دقیقاً مثل یه صحنه‌ی فیلم سینمایی کارگردانی و سرو بشه.',
-        caption: 'دم‌آوری دقیق • هنر باریستاهای نوژه',
+        text: 'پرده‌ی سوم (دم‌آوری): امروز باریستا‌های ما ماه‌ها تمرین می‌کنن تا هر نوشیدنی دقیقاً مثل یه صحنه‌ی فیلم سینمایی کارگردانی و سرو بشه.',
+        caption: 'دم‌آوری دقیق • هنر باریستا‌های نوژه',
         rotate: 'rotate(-15deg) scale(1.04)'
       }
     ];
@@ -1480,11 +1490,11 @@
 
     // کپی نشانی در صحنه ۵
     document.getElementById('copy-address-btn').addEventListener('click', () => {
-      const addressText = 'اصفهان، محله‌ی بازار قدیم، کافه نوژه (همه‌روزه ۸ صبح تا ۱۱ شب)';
+      const addressText = 'اصفهان، خیابان خواجه عمید، خیابان حکیم شفایی سوم، کافه نوژه';
       if (navigator.clipboard) {
         navigator.clipboard.writeText(addressText);
       }
-      document.getElementById('copy-feedback').textContent = 'نشانی «محله‌ی بازار قدیم اصفهان» در حافظه کپی شد!';
+      document.getElementById('copy-feedback').textContent = 'نشانی کافه نوژه در حافظه کپی شد!';
     });
 
     // باز و بسته کردن سینی انتخاب‌ها
