@@ -83,6 +83,10 @@ const gdata = new Uint8Array([110,160,215,255]);
 const gradMap = new THREE.DataTexture(gdata, 4, 1, THREE.RedFormat);
 gradMap.needsUpdate = true;
 gradMap.minFilter = gradMap.magFilter = THREE.NearestFilter;
+const gdata2 = new Uint8Array([150,195,235,255]);
+const prodGrad = new THREE.DataTexture(gdata2, 4, 1, THREE.RedFormat);
+prodGrad.needsUpdate = true;
+prodGrad.minFilter = prodGrad.magFilter = THREE.NearestFilter;
 const toon = c => new THREE.MeshToonMaterial({color:c, gradientMap:gradMap});
 
 /* ---------- canvas textures ---------- */
@@ -186,11 +190,11 @@ function rackRun(len, depth, x, zc, doubleSided){
 const rackL=rackRun(24, 0.55, -2.05, 13, false);   // wall rack (left)
 const rackR=rackRun(24, 0.95,  2.2, 13, true);     // double-sided (right)
 
-/* ---------- products (instanced) ---------- */
+/* ---------- real products (his photos) — one InstancedMesh per product type ---------- */
 const prodGeo=new THREE.BoxGeometry(1,1,1);
-const prodMat=new THREE.MeshToonMaterial({color:0xffffff, gradientMap:gradMap});
-const palette=[0x7fb069,0xe0a458,0xc96f4a,0xe8d8b0,0x9dbb7a,0xd98841,0xb5651d,0xf0e6cc,0x6a994e,0xdd9787];
-const spots=[];
+const PTYPES=['profitto','greenbox','orange7','bluepack','pinkbox','bottle','jar','yellowpack'];
+const texLoader=new THREE.TextureLoader();
+const placeByType=PTYPES.map(()=>[]);
 for(const r of [rackL,rackR]){
   const faces = r.doubleSided ? [-1,1] : [1];   // wall rack: products face the aisle (+x)
   for(const y of r.shelfY){
@@ -199,27 +203,28 @@ for(const r of [rackL,rackR]){
       const xoff = f*(r.depth/2-0.09);
       for(let pz=-r.len/2+0.35; pz<r.len/2-0.3; pz+=0.34+Math.random()*0.12){
         if(Math.random()<0.12) continue; // gaps
+        const ti=(Math.random()*PTYPES.length)|0;
         const h = topShelf ? 0.12+Math.random()*0.02 : 0.22+Math.random()*0.14;
-        spots.push({x:r.x+xoff, y:y+0.037, z:r.zc+pz,
+        placeByType[ti].push({x:r.x+xoff, y:y+0.037+h/2, z:r.zc+pz,
           w:0.16, h:h, d:0.2+Math.random()*0.12});
       }
     }
   }
 }
-const prods=new THREE.InstancedMesh(prodGeo, prodMat, spots.length);
-{
-  const m=new THREE.Matrix4(), q=new THREE.Quaternion(), s=new THREE.Vector3(), p=new THREE.Vector3();
-  const col=new THREE.Color();
-  spots.forEach((sp,i)=>{
-    p.set(sp.x, sp.y+sp.h/2, sp.z); s.set(sp.w,sp.h,sp.d);
-    m.compose(p,q,s); prods.setMatrixAt(i,m);
-    col.setHex(palette[(Math.random()*palette.length)|0]).multiplyScalar(0.85+Math.random()*0.3);
-    prods.setColorAt(i,col);
-  });
-  prods.instanceMatrix.needsUpdate=true;
-  if(prods.instanceColor) prods.instanceColor.needsUpdate=true;
-}
-scene.add(prods);
+PTYPES.forEach((name,ti)=>{
+  const list=placeByType[ti];
+  if(!list.length) return;
+  const tex=texLoader.load('products/'+name+'.jpg');
+  tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4;
+  const im=new THREE.InstancedMesh(prodGeo,
+    new THREE.MeshToonMaterial({map:tex, gradientMap:prodGrad}), list.length);
+  const m=new THREE.Matrix4(), q=new THREE.Quaternion(),
+        s=new THREE.Vector3(), p=new THREE.Vector3();
+  list.forEach((sp,i)=>{ p.set(sp.x,sp.y,sp.z); s.set(sp.w,sp.h,sp.d);
+    m.compose(p,q,s); im.setMatrixAt(i,m); });
+  im.instanceMatrix.needsUpdate=true;
+  scene.add(im);
+});
 
 /* ---------- pothos (hanging plants) ---------- */
 const vineMat=new THREE.MeshToonMaterial({map:leafTex, transparent:true, alphaTest:0.45,
