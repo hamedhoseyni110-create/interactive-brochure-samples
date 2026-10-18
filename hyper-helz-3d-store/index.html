@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>هایپرهلس — فروشگاه سه‌بعدی (دمو)</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#141210;
+    font-family:Tahoma,Vazirmatn,'Noto Sans Arabic',sans-serif;
+    -webkit-user-select:none;user-select:none;touch-action:none}
+  #app{position:fixed;inset:0}
+  canvas{display:block}
+  /* paper grain + vignette over the 3D */
+  #grain{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:.5;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.55 0 0 0 0 0.52 0 0 0 0 0.48 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");}
+  #vig{position:fixed;inset:0;pointer-events:none;z-index:5;
+    background:radial-gradient(ellipse at center,transparent 58%,rgba(20,14,8,.42) 100%)}
+  #fade{position:fixed;inset:0;background:#141210;z-index:40;pointer-events:none;
+    transition:opacity 1.6s ease;opacity:1}
+  /* HUD */
+  #hud{position:fixed;top:0;left:0;right:0;z-index:10;pointer-events:none;
+    padding:10px 14px;display:flex;justify-content:space-between;align-items:flex-start}
+  .pill{background:rgba(20,16,10,.62);color:#f5efe2;border:1px solid rgba(245,239,226,.22);
+    border-radius:999px;padding:7px 14px;font-size:12.5px;backdrop-filter:blur(6px);line-height:1.6}
+  #zone{background:rgba(46,74,40,.78);font-weight:700}
+  #route{position:fixed;bottom:12px;left:0;right:0;z-index:10;pointer-events:none;
+    display:flex;justify-content:center}
+  #route .pill{font-size:11.5px;opacity:.92}
+  /* touch controls */
+  #joy{position:fixed;bottom:70px;left:22px;width:112px;height:112px;z-index:11;display:none;
+    border-radius:50%;background:rgba(245,239,226,.10);border:1.5px solid rgba(245,239,226,.35)}
+  #stick{position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;
+    background:rgba(245,239,226,.55);transform:translate(-50%,-50%)}
+  /* lock / error overlays */
+  #lock{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+    background:rgba(14,12,9,.72);backdrop-filter:blur(3px)}
+  #lock .card{background:#f5efe2;color:#2b2a26;border-radius:18px;padding:26px 30px;max-width:82vw;
+    text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.5)}
+  #lock h2{font-size:19px;margin-bottom:8px}
+  #lock p{font-size:13.5px;line-height:2;color:#5a564c}
+  #lock button{margin-top:14px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;
+    background:#2e4a28;border:none;border-radius:999px;padding:12px 38px;cursor:pointer}
+  #err{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+    background:#141210;color:#f5efe2;text-align:center;padding:30px;font-size:14px;line-height:2.2}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="grain"></div><div id="vig"></div><div id="fade"></div>
+<div id="hud">
+  <div class="pill" id="hint">🖱️ کلیک = نگاه &nbsp;•&nbsp; WASD = حرکت</div>
+  <div class="pill" id="zone">ورودی فروشگاه</div>
+</div>
+<div id="route"><div class="pill">مسیر پیشنهادی: ورودی ← صندوق‌ها ← راهروی رگال‌ها ← جزیره ← نشیمن و پیانو</div></div>
+<div id="joy"><div id="stick"></div></div>
+<div id="lock"><div class="card">
+  <h2>🍊 فروشگاه سه‌بعدی هایپرهلس</h2>
+  <p>نسخه نمایشی — قدم بزن، قفسه‌ها رو ببین<br>محصولات فعلاً نمونه‌اند</p>
+  <button id="startBtn">ورود به فروشگاه</button>
+</div></div>
+<div id="err"><div>متأسفانه مرورگر شما از WebGL پشتیبانی نمی‌کند<br>لطفاً با یک مرورگر به‌روزتر امتحان کنید 🍊</div></div>
+
+<script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ---------- boot watchdog ---------- */
+let booted=false;
+setTimeout(()=>{ if(!booted){ document.getElementById('err').style.display='flex'; } }, 9000);
+
+const app=document.getElementById('app');
+let renderer;
+try{
+  renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+}catch(e){
+  document.getElementById('err').style.display='flex'; throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+app.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x1a1712);
+scene.fog=new THREE.Fog(0x1a1712, 30, 70);
+const camera=new THREE.PerspectiveCamera(68, innerWidth/innerHeight, 0.1, 90);
+
+/* ---------- lights ---------- */
+scene.add(new THREE.HemisphereLight(0xfff4e0, 0x5a4a38, 1.15));
+scene.add(new THREE.AmbientLight(0xfff0dd, 0.35));
+const sun=new THREE.DirectionalLight(0xffe7c4, 1.5);
+sun.position.set(8,14,6); scene.add(sun);
+const fill=new THREE.DirectionalLight(0xdfe8ff, 0.4);
+fill.position.set(-8,10,-6); scene.add(fill);
+
+/* ---------- toon gradient maps ---------- */
+function gradMap(stops){
+  const d=new Uint8Array(stops);
+  const t=new THREE.DataTexture(d,4,1,THREE.RedFormat);
+  t.needsUpdate=true; t.minFilter=t.magFilter=THREE.NearestFilter; return t;
+}
+const gradStd=gradMap([110,160,215,255]);
+const gradProd=gradMap([150,195,235,255]);
+const toon=(c,g=gradStd)=>new THREE.MeshToonMaterial({color:c,gradientMap:g});
+
+/* ---------- canvas texture helpers ---------- */
+function canvasTex(w,h,draw){
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t;
+}
+/* Persian sign */
+function signTex(text, bg='#2e4a28', fg='#f5efe2'){
+  return canvasTex(512,128,(g,w,h)=>{
+    g.fillStyle=bg; g.fillRect(0,0,w,h);
+    g.strokeStyle='rgba(245,239,226,.5)'; g.lineWidth=6; g.strokeRect(8,8,w-16,h-16);
+    g.fillStyle=fg; g.textAlign='center'; g.textBaseline='middle';
+    let size=56;
+    while(size>28){ g.font=`bold ${size}px Tahoma`; if(g.measureText(text).width<=460) break; size-=4; }
+    g.fillText(text,w/2,h/2+2);
+  });
+}
+/* floor tiles */
+const floorTex=canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle='#e9e2d2'; g.fillRect(0,0,w,h);
+  g.strokeStyle='rgba(120,105,85,.35)'; g.lineWidth=3;
+  g.strokeRect(0,0,w,h);
+  g.fillStyle='rgba(150,135,110,.12)';
+  for(let i=0;i<40;i++) g.fillRect(Math.random()*w,Math.random()*h,3,3);
+});
+floorTex.wrapS=floorTex.wrapT=THREE.RepeatWrapping; floorTex.repeat.set(30,34);
+
+/* ---------- materials ---------- */
+const M={
+  floor: new THREE.MeshToonMaterial({map:floorTex,gradientMap:gradStd}),
+  wall: toon(0xefe8d8),
+  wallGreen: toon(0x3d5a35),
+  ceil: toon(0xf5f1e6),
+  rack: toon(0x6b5a44),
+  shelf: toon(0x8a7a62),
+  dark: toon(0x2b2a26),
+  glass: new THREE.MeshPhysicalMaterial({color:0xcfe4da,transparent:true,opacity:0.32,roughness:0.15}),
+  steel: toon(0x9aa0a6),
+  wood: toon(0x7a5c3e),
+  piano: toon(0x1c1a18),
+  fridge: toon(0xdde3e6),
+  counter: toon(0x4a5a48),
+  produce1: toon(0xd97b2b), produce2: toon(0x7fb069), produce3: toon(0xc94f4f),
+};
+
+/* ---------- geometry helpers ---------- */
+function box(w,h,d,mat,x,y,z,parent=scene,ry=0){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(x,y,z); m.rotation.y=ry; parent.add(m); return m;
+}
+function ink(mesh,parent=scene){
+  const e=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry,30),
+    new THREE.LineBasicMaterial({color:0x2e2a24,transparent:true,opacity:0.5}));
+  e.position.copy(mesh.position); e.rotation.copy(mesh.rotation);
+  e.scale.copy(mesh.scale); parent.add(e); return e;
+}
+function boxInk(w,h,d,mat,x,y,z,parent=scene,ry=0){
+  const m=box(w,h,d,mat,x,y,z,parent,ry); ink(m,parent); return m;
+}
+
+/* ---------- FLOOR: P-shaped footprint ---------- */
+const floorPieces=[
+  [-13.6,10.2,-16,16],   // main hall
+  [10.2,13.2,-16,3.2],   // upper-right bowl
+  [-12.8,-3.2,16,17.6],  // entrance jog
+];
+for(const [x0,x1,z0,z1] of floorPieces){
+  const f=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),M.floor);
+  f.rotation.x=-Math.PI/2; f.position.set((x0+x1)/2,0,(z0+z1)/2); scene.add(f);
+}
+
+/* ---------- WALLS (h=3.4) ---------- */
+const WH=3.4;
+function wall(x0,x1,z0,z1){
+  const w=Math.max(x1-x0,0.25), d=Math.max(z1-z0,0.25);
+  const m=boxInk(w,WH,d,M.wall,(x0+x1)/2,WH/2,(z0+z1)/2);
+  // green brand stripe
+  const s=box(w+0.02,0.28,d+0.02,M.wallGreen,(x0+x1)/2,2.25,(z0+z1)/2); scene.add(s);
+  return m;
+}
+wall(-13.7,-13.5,-16,16);            // left
+wall(-13.6,13.2,-16.1,-15.9);        // back
+wall(13.1,13.3,-16,3.2);             // right upper
+wall(10.2,13.2,3.1,3.3);             // L step
+wall(10.1,10.3,3.2,16);              // right lower
+wall(-13.6,-13.0,15.9,16.1);         // front segs (door gaps at -13..-11.4, -4.6..-3)
+wall(-11.4,-4.6,15.9,16.1);
+wall(-3.0,10.2,15.9,16.1);
+wall(-12.9,-12.7,16,17.6);           // jog sides
+wall(-3.3,-3.1,16,17.6);
+wall(-13.0,-12.8,17.5,17.7);         // jog front segs
+wall(-11.4,-4.6,17.5,17.7);
+wall(-3.2,-3.0,17.5,17.7);
+
+/* ---------- CEILING + light strips ---------- */
+{
+  const c=new THREE.Mesh(new THREE.PlaneGeometry(27,34),M.ceil);
+  c.rotation.x=Math.PI/2; c.position.set(0,WH,0.5); scene.add(c);
+  const stripM=new THREE.MeshBasicMaterial({color:0xfff2d8});
+  for(let z=-14;z<=14;z+=4){
+    for(const x of [-8,-2,4]){
+      const s=new THREE.Mesh(new THREE.BoxGeometry(3.2,0.08,0.3),stripM);
+      s.position.set(x,WH-0.06,z); scene.add(s);
+    }
+  }
+}
+/* ================= RACKS + PRODUCTS ================= */
+const obstacles=[];
+function addObstacle(x0,x1,z0,z1){ obstacles.push({x0:Math.min(x0,x1),x1:Math.max(x0,x1),z0:Math.min(z0,z1),z1:Math.max(z0,z1)}); }
+/* front-wall collision (visual walls are not colliders by themselves) — door gaps stay walkable */
+addObstacle(-13.6,-13.0,15.85,16.15);
+addObstacle(-11.4,-4.6,15.85,16.15);
+addObstacle(-3.0,10.2,15.85,16.15);
+addObstacle(-13.05,-12.75,17.45,17.75);
+addObstacle(-11.4,-4.6,17.45,17.75);
+addObstacle(-3.25,-2.95,17.45,17.75);
+addObstacle(-12.95,-12.65,16,17.6);
+addObstacle(-3.35,-3.05,16,17.6);
+
+const PTYPES=['asal','nan','kpbadam','jodosar','kino','roghan','chay','chia','whey','ardeh','shireh','damnush',
+  'profitto','greenbox','orange7','bluepack','pinkbox','bottle','jar','yellowpack'];
+const placeByType=PTYPES.map(()=>[]);
+const SHELVES=[0.32,0.72,1.12,1.52,1.88];
+
+/* rack run: cx,cz center; len along axis ('x'|'z'); depth; doubleSided; faceSign for wall racks */
+function rackRun(cx,cz,len,axis,depth,doubleSided,faceSign=1){
+  const horiz=(axis==='x');
+  const w=horiz?len:depth, d=horiz?depth:len;
+  addObstacle(cx-w/2,cx+w/2,cz-d/2,cz+d/2);
+  // posts
+  const px=horiz?len/2-0.1:depth/2-0.06, pz=horiz?depth/2-0.06:len/2-0.1;
+  for(const sx of [-1,1]) for(const sz of [-1,1])
+    boxInk(0.09,2.1,0.09,M.rack,cx+sx*px,1.05,cz+sz*pz);
+  // top beam + shelves
+  boxInk(w,0.07,d,M.rack,cx,2.12,cz);
+  for(const y of SHELVES) box(w-0.1,0.045,d-0.06,M.shelf,cx,y,cz);
+  // products
+  const faces=doubleSided?[-1,1]:[faceSign];
+  for(const y of SHELVES){
+    const top=(y===1.88);
+    for(const f of faces){
+      const off=horiz?{x:0,z:f*(depth/2-0.13)}:{x:f*(depth/2-0.13),z:0};
+      const n=Math.floor((len-0.5)/0.34);
+      for(let i=0;i<n;i++){
+        if(Math.random()<0.1) continue;
+        const t=(Math.random()*PTYPES.length)|0;
+        const h=top?0.11+Math.random()*0.03:0.2+Math.random()*0.15;
+        const along=-len/2+0.3+i*0.34+Math.random()*0.06;
+        placeByType[t].push({
+          x:cx+(horiz?along:off.x), y:y+0.025+h/2, z:cz+(horiz?off.z:along),
+          w:0.15+Math.random()*0.04, h:h, d:0.17+Math.random()*0.08,
+          ry:horiz?(f>0?0:Math.PI):(f>0?Math.PI/2:-Math.PI/2)
+        });
+      }
+    }
+  }
+}
+
+/* the six rack runs (floor-plan v3) */
+rackRun(-12.3, -1.0, 28.0, 'z', 0.9, false);   // left wall rack — continuous (ends before entrance)
+rackRun(-4.55,-2.8, 5.6, 'z', 0.9, true);     // middle column A
+rackRun(-4.55, 3.8, 6.0, 'z', 0.9, true);     // middle column B
+rackRun( 2.2, 2.25, 6.8, 'x', 0.9, true);     // below-island horizontal
+rackRun(-0.75, 6.6, 4.8, 'z', 0.9, true);     // below-island vertical
+rackRun( 9.7, 9.6, 11.2, 'z', 0.9, false, -1);    // lower-right wall rack (faces -x)
+
+/* build product instanced meshes */
+{
+  const texLoader=new THREE.TextureLoader();
+  const geo=new THREE.BoxGeometry(1,1,1);
+  PTYPES.forEach((name,ti)=>{
+    const list=placeByType[ti]; if(!list.length) return;
+    const tex=texLoader.load('products/'+name+'.jpg');
+    tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4;
+    const im=new THREE.InstancedMesh(geo,new THREE.MeshToonMaterial({map:tex,gradientMap:gradProd}),list.length);
+    const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),
+          s=new THREE.Vector3(),p=new THREE.Vector3();
+    list.forEach((sp,i)=>{ p.set(sp.x,sp.y,sp.z); e.set(0,sp.ry,0); q.setFromEuler(e);
+      s.set(sp.w,sp.h,sp.d); m.compose(p,q,s); im.setMatrixAt(i,m); });
+    im.instanceMatrix.needsUpdate=true; scene.add(im);
+  });
+}
+
+/* ================= GLASS ISLAND (zone 1) ================= */
+{
+  const x0=-1.2,x1=7.6,z0=-5.6,z1=0.4,cx=(x0+x1)/2,cz=(z0+z1)/2;
+  addObstacle(x0,x1,z0,z1);
+  // base
+  boxInk(x1-x0,0.5,z1-z0,M.wood,cx,0.25,cz);
+  // produce crates: 3 rows of colorful produce (instanced spheres)
+  const crateY=0.55;
+  const cols=[M.produce1,M.produce2,M.produce3];
+  const sg=new THREE.SphereGeometry(0.09,10,8);
+  const spots=[];
+  for(let r=0;r<3;r++) for(let i=0;i<14;i++) for(let j=0;j<5;j++)
+    spots.push({x:x0+0.7+i*0.55, z:z0+0.8+r*1.9+j*0.32, c:r});
+  cols.forEach((mat,ci)=>{
+    const list=spots.filter(s=>s.c===ci); if(!list.length) return;
+    const im=new THREE.InstancedMesh(sg,mat,list.length);
+    const m=new THREE.Matrix4();
+    list.forEach((s,i)=>{ m.makeTranslation(s.x,crateY+0.04+(i%3)*0.05,s.z); im.setMatrixAt(i,m); });
+    im.instanceMatrix.needsUpdate=true; scene.add(im);
+  });
+  // glass walls
+  const gh=0.75, gy=0.5+gh/2+0.15;
+  const mkGlass=(w,x,z,ry=0)=>{ const p=new THREE.Mesh(new THREE.BoxGeometry(w,gh,0.03),M.glass);
+    p.position.set(x,gy,z); p.rotation.y=ry; scene.add(p); };
+  mkGlass(x1-x0,cx,z0); mkGlass(x1-x0,cx,z1);
+  mkGlass(z1-z0,x0,cz,Math.PI/2); mkGlass(z1-z0,x1,cz,Math.PI/2);
+  // wood rim
+  boxInk(x1-x0+0.1,0.08,0.12,M.wood,cx,gy+gh/2,z0);
+  boxInk(x1-x0+0.1,0.08,0.12,M.wood,cx,gy+gh/2,z1);
+}
+
+/* ================= FRIDGES (zone 5, upper right) ================= */
+{
+  const fz=[-14.2,-11.6,-9.0,-6.4,-3.8];
+  const fg=new THREE.BoxGeometry(0.16,0.3,0.16);
+  const fcols=[0xd96a4a,0x7fb069,0xe0c060,0x9a7ac9].map(c=>toon(c,gradProd));
+  const fspots=[];
+  for(const z of fz){
+    const x=12.35;
+    addObstacle(x-0.5,x+0.5,z-1.15,z+1.15);
+    // body as shell (open front) so shelves + cartons show through the glass
+    boxInk(0.1,2.3,2.3,M.fridge,x+0.42,1.15,z);                  // back
+    boxInk(0.95,2.3,0.1,M.fridge,x,1.15,z-1.1);                 // sides
+    boxInk(0.95,2.3,0.1,M.fridge,x,1.15,z+1.1);
+    boxInk(0.95,0.12,2.3,M.fridge,x,2.24,z);                    // top
+    boxInk(0.95,0.15,2.3,M.fridge,x,0.075,z);                  // kick
+    const door=new THREE.Mesh(new THREE.PlaneGeometry(2.0,1.9),
+      new THREE.MeshBasicMaterial({color:0xa8ccd8,transparent:true,opacity:0.32}));
+    door.rotation.y=-Math.PI/2; door.position.set(x-0.49,1.25,z); scene.add(door);
+    // door frame: 4 thin steel bars
+    boxInk(0.05,0.08,2.06,M.steel,x-0.5,2.22,z);
+    boxInk(0.05,0.08,2.06,M.steel,x-0.5,0.28,z);
+    boxInk(0.05,2.0,0.08,M.steel,x-0.5,1.25,z-1.0);
+    boxInk(0.05,2.0,0.08,M.steel,x-0.5,1.25,z+1.0);
+    // inner shelves + dairy cartons visible through glass
+    for(const sy of [0.7,1.2,1.7]){
+      box(0.5,0.04,1.9,M.shelf,x-0.2,sy,z);
+      for(let i=0;i<6;i++)
+        fspots.push({x:x-0.2+(Math.random()-0.5)*0.2, y:sy+0.19, z:z-0.8+i*0.32, c:(Math.random()*4)|0});
+    }
+    // cold light strip on top
+    const s=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.06,2.2),new THREE.MeshBasicMaterial({color:0xd8f0fa}));
+    s.position.set(x-0.45,2.32,z); scene.add(s);
+  }
+  const fim=new THREE.InstancedMesh(fg,fcols[0],fspots.length);
+  const m4=new THREE.Matrix4(), col=new THREE.Color();
+  fspots.forEach((sp,i)=>{ m4.makeTranslation(sp.x,sp.y,sp.z); fim.setMatrixAt(i,m4);
+    fim.setColorAt(i,col.setHex([0xd96a4a,0x7fb069,0xe0c060,0x9a7ac9][sp.c])); });
+  fim.instanceMatrix.needsUpdate=true; if(fim.instanceColor) fim.instanceColor.needsUpdate=true;
+  scene.add(fim);
+}
+
+/* ================= CHECKOUTS ================= */
+{
+  for(const cx of [-9.6,-6.9]){
+    addObstacle(cx-1.2,cx+1.2,11.9,12.9);
+    boxInk(2.4,1.02,1.0,M.counter,cx,0.51,12.4);               // counter
+    box(2.4,0.06,0.5,M.dark,cx,1.05,12.4);                     // belt
+    boxInk(0.5,0.4,0.4,M.dark,cx+0.7,1.25,12.4);               // scanner
+  }
+}
+
+/* ================= CAFÉ (zone 3, back-left) ================= */
+{
+  const cx=-8.4,cz=-14;
+  addObstacle(cx-2,cx+2,cz-0.5,cz+0.5);
+  boxInk(4.0,1.05,1.0,M.wood,cx,0.52,cz);                      // counter
+  box(4.0,0.06,1.05,M.dark,cx,1.08,cz);
+  // menu board removed (hanging sign above already says it) — kept counter clean
+  // 2 tables + stools
+  for(const [tx,tz] of [[-10.5,-11.5],[-6.5,-11.5]]){
+    addObstacle(tx-1.05,tx+1.05,tz-1.05,tz+1.05);
+    boxInk(0.9,0.06,0.9,M.wood,tx,0.72,tz); 
+    box(0.08,0.72,0.08,M.dark,tx,0.36,tz);
+    for(const [sx,szz] of [[-0.8,0],[0.8,0]]) boxInk(0.4,0.45,0.4,M.wood,tx+sx,0.22,tz+szz);
+  }
+}
+
+/* ================= SEATING + PIANO (zone 4) ================= */
+{
+  // rug
+  const rug=new THREE.Mesh(new THREE.PlaneGeometry(9,4.6),toon(0x8a6a4a));
+  rug.rotation.x=-Math.PI/2; rug.position.set(4,0.005,-12.6); scene.add(rug);
+  // piano
+  addObstacle(-0.1,1.6,-12.6,-11.2);                            // piano + bench
+  for(const [lx,lz] of [[0.1,-12.5],[1.4,-12.5],[0.1,-11.9],[1.4,-11.9]])
+    box(0.09,0.48,0.09,M.piano,lx,0.24,lz);                    // legs
+  boxInk(1.7,0.75,0.9,M.piano,0.75,0.85,-12.2);
+  boxInk(1.7,0.08,1.0,M.piano,0.75,1.26,-12.2);
+  boxInk(0.5,0.45,0.35,M.dark,0.75,0.22,-11.4);                // bench
+  // tables + chairs
+  for(const [tx,tz] of [[3.6,-11.2],[5.6,-11.2],[4.6,-13.6]]){
+    addObstacle(tx-1.1,tx+1.1,tz-1.1,tz+1.1);
+    boxInk(1.0,0.06,1.0,M.wood,tx,0.72,tz);
+    box(0.09,0.72,0.09,M.dark,tx,0.36,tz);
+    for(const a of [0,Math.PI/2,Math.PI,-Math.PI/2]){
+      const chx=tx+Math.cos(a)*0.85, chz=tz+Math.sin(a)*0.85;
+      boxInk(0.42,0.5,0.42,M.wood,chx,0.25,chz);
+    }
+  }
+}
+
+/* ================= POTHOS (hard rule: plants everywhere) ================= */
+const vines=[];
+{
+  const leafTex=canvasTex(64,64,(g,w,h)=>{
+    g.clearRect(0,0,w,h); g.fillStyle='#3f7a34';
+    g.beginPath(); g.ellipse(32,32,20,26,0.5,0,7); g.fill();
+    g.strokeStyle='#2c5a24'; g.lineWidth=3; g.stroke();
+  });
+  const vineMat=new THREE.MeshToonMaterial({map:leafTex,transparent:true,alphaTest:0.45,
+    side:THREE.DoubleSide,gradientMap:gradStd});
+  const potMat=toon(0x8a5f3d);
+  function pothos(x,y,z){
+    const g=new THREE.Group(); g.position.set(x,y,z); scene.add(g);
+    const pot=new THREE.Mesh(new THREE.BoxGeometry(0.3,0.24,0.3),potMat);
+    pot.position.y=0; g.add(pot); ink(pot,g);
+    for(let i=0;i<4;i++){
+      const vh=0.8+Math.random()*0.7;
+      const v=new THREE.Mesh(new THREE.PlaneGeometry(0.45,vh),vineMat);
+      const a=(i/4)*Math.PI*2+Math.random();
+      v.position.set(Math.cos(a)*0.16,-vh/2+0.05,Math.sin(a)*0.16);
+      v.rotation.y=Math.random()*Math.PI; v.userData.ph=Math.random()*7; v.userData.amp=0.06+Math.random()*0.05;
+      g.add(v); vines.push(v);
+    }
+  }
+  // along left rack + mid racks + entrance + café + seating
+  for(let z=-13;z<=12;z+=3.4) pothos(-12.2,2.9,z);
+  for(let z=-4;z<=6;z+=3.4){ pothos(-5.6,2.9,z); pothos(-3.5,2.9,z); }
+  pothos(-11,2.9,15.5); pothos(-5,2.9,15.5);
+  pothos(-8.4,2.9,-13);
+  pothos(0.5,3.15,-14.5); pothos(7.5,3.15,-14.5);   // seating: near walls, out of walkway
+  pothos(9.7,2.9,8);
+}
+
+/* ================= ZONE SIGNS ================= */
+function hangSign(text,x,z,bg){
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(3.4,0.85),
+    new THREE.MeshBasicMaterial({map:signTex(text,bg),side:THREE.DoubleSide}));
+  m.position.set(x,2.75,z); scene.add(m);
+  box(0.03,0.65,0.03,M.dark,x-1.4,3.15,z); box(0.03,0.65,0.03,M.dark,x+1.4,3.15,z);
+}
+hangSign('جزیره میوه و سبزیجات', 3.2, -2.6, '#2e4a28');
+hangSign('گرین‌کافه', -8.4, -12.2, '#3d5a35');
+hangSign('نشیمن و پیانو', 4, -11.4, '#5a4a35');
+hangSign('صندوق', -8.2, 11.2, '#33454a');
+hangSign('لبنیات و نوشیدنی', 11.4, -9, '#2f4a5a');
+hangSign('محصولات سلامت', -8.8, 2, '#3d5a35');
+/* ================= CONTROLS + COLLISION ================= */
+const player={x:-11.3, z:15.2, yaw:0, pitch:0, r:0.35};
+const EYE=1.62;
+const REGIONS=[[-13.6,10.2,-16,16],[10.2,13.2,-16,3.2],[-12.8,-3.2,16,17.6]];
+function inRegions(x,z){
+  return REGIONS.some(([a,b,c,d])=>x>a&&x<b&&z>c&&z<d);
+}
+function hitsObstacle(x,z){
+  const r=player.r;
+  return obstacles.some(o=>x+r>o.x0&&x-r<o.x1&&z+r>o.z0&&z-r<o.z1);
+}
+function tryMove(nx,nz){
+  if(inRegions(nx,player.z)&&!hitsObstacle(nx,player.z)) player.x=nx;
+  if(inRegions(player.x,nz)&&!hitsObstacle(player.x,nz)) player.z=nz;
+}
+const keys={};
+addEventListener('keydown',e=>{ keys[e.key.toLowerCase()]=true; });
+addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+
+const isTouch=matchMedia('(pointer:coarse)').matches||'ontouchstart'in window;
+const hintEl=document.getElementById('hint');
+if(isTouch){
+  hintEl.innerHTML='🕹️ جوی‌استیک = حرکت &nbsp;•&nbsp; درگ نیمه راست = نگاه';
+  document.getElementById('joy').style.display='block';
+}
+/* pointer-lock look (desktop) */
+let locked=false;
+renderer.domElement.addEventListener('click',()=>{
+  if(!isTouch&&!locked) renderer.domElement.requestPointerLock();
+});
+document.addEventListener('pointerlockchange',()=>{ locked=document.pointerLockElement===renderer.domElement; });
+addEventListener('mousemove',e=>{
+  if(!locked) return;
+  player.yaw-=e.movementX*0.0024; player.pitch-=e.movementY*0.0024;
+  player.pitch=Math.max(-1.2,Math.min(1.2,player.pitch));
+});
+/* touch: joystick (left half) + look drag (right half) */
+const joy={x:0,y:0,id:null}, look={id:null,lx:0,ly:0};
+const joyEl=document.getElementById('joy'), stick=document.getElementById('stick');
+function joyCenter(){ const r=joyEl.getBoundingClientRect(); return [r.left+r.width/2,r.top+r.height/2]; }
+addEventListener('touchstart',e=>{
+  for(const t of e.changedTouches){
+    if(t.clientX<innerWidth/2&&joy.id===null){ joy.id=t.identifier; }
+    else if(look.id===null){ look.id=t.identifier; look.lx=t.clientX; look.ly=t.clientY; }
+  }
+},{passive:true});
+addEventListener('touchmove',e=>{
+  for(const t of e.changedTouches){
+    if(t.identifier===joy.id){
+      const [cx,cy]=joyCenter();
+      let dx=(t.clientX-cx)/46, dy=(t.clientY-cy)/46;
+      const l=Math.hypot(dx,dy); if(l>1){dx/=l;dy/=l;}
+      joy.x=dx; joy.y=dy;
+      stick.style.transform=`translate(calc(-50% + ${dx*30}px),calc(-50% + ${dy*30}px))`;
+    }else if(t.identifier===look.id){
+      player.yaw-=(t.clientX-look.lx)*0.005; player.pitch-=(t.clientY-look.ly)*0.005;
+      player.pitch=Math.max(-1.2,Math.min(1.2,player.pitch));
+      look.lx=t.clientX; look.ly=t.clientY;
+    }
+  }
+},{passive:true});
+addEventListener('touchend',e=>{
+  for(const t of e.changedTouches){
+    if(t.identifier===joy.id){ joy.id=null; joy.x=joy.y=0;
+      stick.style.transform='translate(-50%,-50%)'; }
+    if(t.identifier===look.id) look.id=null;
+  }
+});
+
+/* ---------- zone names ---------- */
+const zoneEl=document.getElementById('zone');
+function zoneAt(x,z){
+  if(z>14) return 'ورودی فروشگاه';
+  if(x>-11&&x<-5.5&&z>10.5) return 'صندوق‌ها';
+  if(z<-9.5) return x<=-2.5?'گرین‌کافه':'نشیمن و پیانو';
+  if(x>10.5) return 'یخچال‌ها';
+  if(x>-1.5&&x<8&&z>-6&&z<1) return 'جزیره میوه و سبزیجات';
+  if(x>-13&&x<-3&&z>-6&&z<8) return 'راهروی رگال‌ها';
+  return 'سالن فروشگاه';
+}
+
+/* ---------- start / loop ---------- */
+document.getElementById('startBtn').addEventListener('click',()=>{
+  document.getElementById('lock').style.display='none';
+  document.getElementById('fade').style.opacity='0';
+});
+addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+const clock=new THREE.Clock();
+let bob=0, firstFrame=true;
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),0.05);
+  /* movement */
+  let mx=0,mz=0;
+  if(keys['w']||keys['arrowup'])mz+=1; if(keys['s']||keys['arrowdown'])mz-=1;
+  if(keys['a']||keys['arrowleft'])mx-=1; if(keys['d']||keys['arrowright'])mx+=1;
+  mx+=joy.x; mz-=joy.y;
+  const l=Math.hypot(mx,mz);
+  if(l>0.01){
+    const sp=2.7*dt/Math.max(l,1);
+    // yaw=0 faces -z; forward = (-sin(yaw), -cos(yaw))
+    const fx=-Math.sin(player.yaw), fz=-Math.cos(player.yaw);
+    const rx=Math.cos(player.yaw), rz=-Math.sin(player.yaw);
+    tryMove(player.x+(fx*mz+rx*mx)*sp, player.z+(fz*mz+rz*mx)*sp);
+    bob+=dt*9;
+  }
+  /* vines sway */
+  const t=clock.elapsedTime;
+  for(const v of vines) v.rotation.z=Math.sin(t*1.3+v.userData.ph)*v.userData.amp;
+  /* camera */
+  camera.position.set(player.x, EYE+Math.sin(bob)*0.025, player.z);
+  camera.rotation.set(0,0,0); camera.rotateY(player.yaw); camera.rotateX(player.pitch);
+  zoneEl.textContent=zoneAt(player.x,player.z);
+  renderer.render(scene,camera);
+  if(firstFrame){ firstFrame=false; booted=true; }
+}
+animate();
+</script>
+</body>
+</html>
