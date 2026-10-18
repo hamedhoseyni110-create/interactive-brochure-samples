@@ -33,7 +33,7 @@
   #stick{position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;
     background:rgba(245,239,226,.55);transform:translate(-50%,-50%)}
   /* lock / error overlays */
-  #lock{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+  #lock{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
     background:rgba(14,12,9,.72);backdrop-filter:blur(3px)}
   #lock .card{background:#f5efe2;color:#2b2a26;border-radius:18px;padding:26px 30px;max-width:82vw;
     text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.5)}
@@ -41,7 +41,8 @@
   #lock p{font-size:13.5px;line-height:2;color:#5a564c}
   #lock button{margin-top:14px;font-family:inherit;font-size:15px;font-weight:700;color:#fff;
     background:#2e4a28;border:none;border-radius:999px;padding:12px 38px;cursor:pointer}
-  #err{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  #lock button:disabled{opacity:.55;cursor:wait}
+  #err{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
     background:#141210;color:#f5efe2;text-align:center;padding:30px;font-size:14px;line-height:2.2}
 </style>
 </head>
@@ -57,11 +58,11 @@
 <div id="lock"><div class="card">
   <h2>🍊 فروشگاه سه‌بعدی هایپرهلس</h2>
   <p>نسخه نمایشی — قدم بزن، قفسه‌ها رو ببین<br>محصولات فعلاً نمونه‌اند</p>
-  <button id="startBtn">ورود به فروشگاه</button>
+  <button id="startBtn" disabled>در حال بارگذاری فروشگاه...</button>
 </div></div>
 <div id="err"><div>متأسفانه مرورگر شما از WebGL پشتیبانی نمی‌کند<br>لطفاً با یک مرورگر به‌روزتر امتحان کنید 🍊</div></div>
 
-<script type="importmap">{"imports":{"three":"./three.module.js"}}</script>
+<script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 <script type="module">
 import * as THREE from 'three';
 
@@ -572,7 +573,10 @@ function animate(){
   camera.rotation.set(0,0,0); camera.rotateY(player.yaw); camera.rotateX(player.pitch);
   zoneEl.textContent=zoneAt(player.x,player.z);
   renderer.render(scene,camera);
-  if(firstFrame){ firstFrame=false; booted=true; }
+  if(firstFrame){ firstFrame=false; booted=true;
+    const b=document.getElementById('startBtn');
+    if(b){ b.disabled=false; b.textContent='ورود به فروشگاه'; }
+  }
 }
 animate();
 </script>
