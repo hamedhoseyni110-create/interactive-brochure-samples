@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رخت — استایلت رو خودت بچین</title>
+<style>
+  /* ============ WHITE-LABEL: brand + palette live here ============ */
+  :root {
+    --brand-name: "رخت";
+    --bg: #0d0b09;
+    --surface: #171310;
+    --surface-2: #1f1913;
+    --border: #2e251b;
+    --accent: #e8a33d;
+    --accent-soft: rgba(232, 163, 61, 0.14);
+    --text: #f5efe6;
+    --muted: #a89c8c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Tahoma, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.9;
+    overflow-x: hidden;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    position: fixed; top: 0; right: 0; left: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 22px;
+    background: linear-gradient(to bottom, rgba(13,11,9,0.88), rgba(13,11,9,0));
+    transition: background 0.3s ease;
+  }
+  header.scrolled { background: rgba(13,11,9,0.92); backdrop-filter: blur(8px); }
+  .wordmark { font-size: 26px; font-weight: 800; color: var(--accent); }
+  header nav { display: flex; gap: 8px; flex-wrap: wrap; }
+  header nav a {
+    color: var(--text); text-decoration: none; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 999px; padding: 6px 15px;
+    background: rgba(23,19,16,0.6); transition: all 0.25s ease;
+  }
+  header nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative; height: 100vh; min-height: 600px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: -12% 0; /* extra for parallax travel */
+    background: url("assets/rack-bonus.jpg") center 30% / cover no-repeat;
+    will-change: transform;
+  }
+  .hero .shade {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 42%, rgba(13,11,9,0.10) 0%, rgba(13,11,9,0.55) 70%, rgba(13,11,9,0.92) 100%),
+      linear-gradient(to bottom, rgba(13,11,9,0.55) 0%, rgba(13,11,9,0.18) 35%, rgba(13,11,9,0.30) 65%, var(--bg) 100%);
+  }
+  .hero-inner { position: relative; z-index: 2; text-align: center; padding: 0 20px; max-width: 900px; }
+  .hero .kicker {
+    display: inline-block; font-size: 14px; color: var(--accent); font-weight: 700;
+    border: 1px solid var(--accent); border-radius: 999px; padding: 6px 20px; margin-bottom: 18px;
+    background: rgba(13,11,9,0.5);
+  }
+  .hero h1 {
+    font-size: clamp(72px, 15vw, 160px); font-weight: 800; line-height: 1.15;
+    color: #fff; text-shadow: 0 8px 50px rgba(0,0,0,0.7);
+  }
+  .hero h1 .dot { color: var(--accent); }
+  .hero .tagline { font-size: clamp(22px, 4.4vw, 34px); font-weight: 700; margin-top: 8px; text-shadow: 0 4px 24px rgba(0,0,0,0.7); }
+  .hero .subline { color: #d8cdbd; font-size: clamp(14px, 2.4vw, 18px); margin-top: 12px; text-shadow: 0 2px 14px rgba(0,0,0,0.8); }
+  .cta {
+    display: inline-block; margin-top: 30px;
+    background: var(--accent); color: #1a1206;
+    font-size: 18px; font-weight: 800; text-decoration: none;
+    padding: 15px 52px; border-radius: 999px;
+    box-shadow: 0 10px 34px rgba(232,163,61,0.35);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .cta:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 44px rgba(232,163,61,0.55); }
+  .scroll-hint {
+    position: absolute; bottom: 26px; right: 0; left: 0; z-index: 2;
+    text-align: center; color: var(--muted); font-size: 13px;
+  }
+  .scroll-hint .mouse {
+    width: 24px; height: 38px; border: 2px solid var(--muted); border-radius: 14px;
+    margin: 0 auto 8px; position: relative;
+  }
+  .scroll-hint .mouse::after {
+    content: ""; position: absolute; top: 7px; right: 50%; transform: translateX(50%);
+    width: 4px; height: 8px; border-radius: 4px; background: var(--accent);
+    animation: wheel 1.8s ease-in-out infinite;
+  }
+  @keyframes wheel { 0% { opacity: 1; top: 7px; } 70% { opacity: 0; top: 16px; } 100% { opacity: 0; } }
+
+  /* ---------- marquee ticker ---------- */
+  .ticker {
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    background: var(--surface); overflow: hidden; white-space: nowrap; padding: 10px 0;
+  }
+  .ticker-track { display: inline-flex; gap: 0; animation: tick 26s linear infinite; }
+  .ticker span { font-size: 14px; color: var(--muted); padding: 0 26px; }
+  .ticker span b { color: var(--accent); font-weight: 800; }
+  @keyframes tick { from { transform: translateX(0); } to { transform: translateX(50%); } }
+
+  /* ---------- sections ---------- */
+  section.block { padding: 90px 20px 70px; max-width: 1200px; margin: 0 auto; }
+  section.block h2 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; text-align: center; }
+  section.block h2 .dot { color: var(--accent); }
+  section.block .explain { text-align: center; color: var(--muted); margin: 6px 0 44px; font-size: 16px; }
+
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  /* ---------- rack ---------- */
+  .tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .tabs button {
+    font-family: inherit; font-size: 15px; font-weight: 700;
+    color: var(--muted); background: var(--surface); border: 1px solid var(--border);
+    border-radius: 999px; padding: 9px 28px; cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .tabs button:hover { border-color: var(--accent); color: var(--text); }
+  .tabs button.active { color: #1a1206; background: var(--accent); border-color: var(--accent); }
+
+  .rail-wrap { padding-top: 54px; max-width: 1000px; margin: 0 auto; }
+  .rail-row { margin-bottom: 36px; }
+  .rail-row:last-child { margin-bottom: 0; }
+  .rail {
+    height: 12px; border-radius: 8px; position: relative;
+    background: linear-gradient(to bottom, #7a6647, #3a2f21);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 1px 0 rgba(232,163,61,0.25) inset;
+  }
+  .rail::before, .rail::after {
+    content: ""; position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%;
+    background: #241d13; border: 2px solid #7a6647; transform: translateY(-50%);
+  }
+  .rail::before { right: -6px; } .rail::after { left: -6px; }
+
+  .hangers { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: -4px; }
+  .hanger { position: relative; width: 132px; cursor: pointer; transform-origin: top center; }
+  .hanger .hook { width: 3px; height: 24px; background: #8a7452; margin: 0 auto; position: relative; }
+  .hanger .hook::before {
+    content: ""; position: absolute; top: -11px; right: 50%; transform: translateX(50%);
+    width: 15px; height: 15px; border: 3px solid #8a7452; border-bottom: none;
+    border-radius: 50% 50% 0 0;
+  }
+  .hanger .card {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .hanger:nth-child(odd) .card { transform: rotate(-1.6deg); }
+  .hanger:nth-child(even) .card { transform: rotate(1.4deg); }
+  .hanger:hover { z-index: 3; }
+  .hanger:hover .hook { animation: swing 1.15s ease-in-out infinite; }
+  .hanger:hover .card {
+    animation: swing 1.15s ease-in-out infinite;
+    transform: translateY(-8px);
+    border-color: var(--accent); box-shadow: 0 22px 40px rgba(0,0,0,0.65), 0 0 24px rgba(232,163,61,0.18);
+  }
+  @keyframes swing { 0%, 100% { rotate: -6deg; } 50% { rotate: 6deg; } }
+  .hanger img { display: block; width: 100%; aspect-ratio: 4/5; object-fit: cover; background: #0a0806; }
+  .hanger .cap { padding: 8px 6px 10px; text-align: center; }
+  .hanger .cap .nm { font-size: 13px; font-weight: 700; }
+  .hanger .cap .pr { font-size: 12px; color: var(--accent); }
+  .hanger.worn .card { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 12px 28px rgba(0,0,0,0.5); }
+  .hanger.worn .card::after {
+    content: "تن مدل شد"; position: absolute; top: 8px; right: 8px;
+    font-size: 11px; font-weight: 800; color: #1a1206; background: var(--accent);
+    border-radius: 8px; padding: 2px 10px;
+  }
+  .hanger .card { position: relative; }
+  .hanger .tip {
+    position: absolute; bottom: calc(100% + 32px); right: 50%; transform: translateX(50%) translateY(6px);
+    background: #241d13; border: 1px solid var(--accent); color: var(--text);
+    font-size: 12px; white-space: nowrap; padding: 6px 14px; border-radius: 10px;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 10;
+  }
+  .hanger:hover .tip { opacity: 1; transform: translateX(50%) translateY(0); }
+
+  /* ---------- fitting room ---------- */
+  .fr-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 40px; align-items: start; }
+  .stage {
+    position: relative; border-radius: 18px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.55), 0 0 0 6px rgba(232,163,61,0.05);
+    max-width: 400px; margin: 0 auto; width: 100%;
+  }
+  .stage img.base { display: block; width: 100%; height: auto; }
+  .worn-layer {
+    position: absolute; overflow: visible; pointer-events: none;
+    opacity: 0; transform: translateX(-50%) scale(1.06);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .worn-layer.on { opacity: 1; transform: translateX(-50%) scale(1); }
+  .worn-layer img {
+    display: block; width: 100%; height: auto;
+    filter: drop-shadow(0 14px 12px rgba(0,0,0,0.55)); /* soft contact shadow */
+  }
+  .stage .stage-label {
+    position: absolute; bottom: 10px; right: 12px; z-index: 5;
+    font-size: 12px; color: var(--muted);
+    background: rgba(13,11,9,0.65); padding: 3px 12px; border-radius: 999px;
+  }
+  .fr-side .guide { display: flex; gap: 10px; margin-bottom: 22px; }
+  .fr-side .guide div {
+    flex: 1; text-align: center; font-size: 13px; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 6px;
+  }
+  .fr-side .guide b { display: block; font-size: 20px; color: var(--accent); }
+
+  .set-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px; }
+  .set-panel h3 { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .set-panel h3 .dot { color: var(--accent); }
+  .set-empty { color: var(--muted); font-size: 14px; padding: 10px 0; }
+  .set-list { list-style: none; margin: 12px 0; }
+  .set-list li {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 0; border-bottom: 1px dashed var(--border);
+  }
+  .set-list li:last-child { border-bottom: none; }
+  .set-list img { width: 52px; height: 52px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); }
+  .set-list .nm { flex: 1; font-size: 15px; font-weight: 700; }
+  .set-list .pr { color: var(--accent); font-size: 14px; white-space: nowrap; }
+  .set-list .rm {
+    font-family: inherit; font-size: 13px; color: #e07a7a; background: none;
+    border: 1px solid #5a3434; border-radius: 8px; padding: 4px 14px; cursor: pointer;
+  }
+  .set-list .rm:hover { background: rgba(224,122,122,0.12); }
+  .set-total {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+    font-size: 17px; font-weight: 800;
+  }
+  .set-total .val { color: var(--accent); }
+  .add-cart {
+    display: block; width: 100%; margin-top: 16px;
+    font-family: inherit; font-size: 17px; font-weight: 800;
+    background: var(--accent); color: #1a1206; border: none; border-radius: 12px;
+    padding: 14px; cursor: pointer; transition: transform 0.2s ease;
+  }
+  .add-cart:hover { transform: translateY(-2px); }
+  .add-cart:disabled { opacity: 0.45; cursor: default; transform: none; }
+
+  /* ---------- collection ---------- */
+  .coll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
+  .coll-card {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .coll-card:hover { transform: translateY(-6px); border-color: var(--accent); box-shadow: 0 18px 40px rgba(0,0,0,0.55); }
+  .coll-card .ph { overflow: hidden; aspect-ratio: 4/5; background: #0a0806; }
+  .coll-card img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .coll-card:hover img { transform: scale(1.07); }
+  .coll-card .inf { padding: 10px 12px 14px; text-align: center; }
+  .coll-card .nm { font-size: 14px; font-weight: 700; }
+  .coll-card .pr { font-size: 13px; color: var(--accent); margin: 2px 0 10px; }
+  .coll-card button {
+    font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent);
+    border-radius: 999px; padding: 6px 22px; transition: all 0.25s ease;
+  }
+  .coll-card button:hover { background: var(--accent); color: #1a1206; }
+
+  /* ---------- styles ---------- */
+  .styles-strip {
+    display: flex; gap: 20px; overflow-x: auto; padding: 6px 4px 20px;
+    scroll-snap-type: x mandatory; scrollbar-width: thin;
+  }
+  .style-card {
+    flex: 0 0 280px; scroll-snap-align: start;
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .style-card:hover { transform: translateY(-6px); border-color: var(--accent); box-shadow: 0 18px 40px rgba(0,0,0,0.55); }
+  .style-card .ph { aspect-ratio: 3/4; overflow: hidden; background: #0a0806; }
+  .style-card .ph img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .style-card:hover .ph img { transform: scale(1.05); }
+  .style-card .inf { padding: 14px 16px 18px; }
+  .style-card .st { font-size: 17px; font-weight: 800; }
+  .style-card .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .style-card .chip {
+    font-size: 12px; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px;
+    background: var(--surface);
+  }
+  .style-card .chip b { color: var(--accent); font-weight: 700; }
+  .style-card .total {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 14px; font-weight: 800;
+    padding-top: 12px; border-top: 1px solid var(--border); margin-bottom: 14px;
+  }
+  .style-card .total .val { color: var(--accent); }
+  .style-card .btns { display: flex; gap: 10px; }
+  .style-card .try {
+    flex: 1; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer;
+    background: var(--accent); color: #1a1206; border: none; border-radius: 10px; padding: 11px 8px;
+    transition: transform 0.2s ease;
+  }
+  .style-card .try:hover { transform: translateY(-2px); }
+  .style-card .tocart {
+    flex: 1; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent);
+    border-radius: 10px; padding: 11px 8px; transition: all 0.25s ease;
+  }
+  .style-card .tocart:hover { background: var(--accent); color: #1a1206; }
+
+  /* ---------- lookbook ---------- */
+  .look-strip {
+    display: flex; gap: 18px; overflow-x: auto; padding: 6px 4px 18px;
+    scroll-snap-type: x mandatory; scrollbar-width: thin;
+  }
+  .look-strip figure {
+    flex: 0 0 300px; scroll-snap-align: start;
+    border-radius: 16px; overflow: hidden; border: 1px solid var(--border);
+    position: relative; background: var(--surface);
+  }
+  .look-strip img { display: block; width: 100%; height: 380px; object-fit: cover; transition: transform 0.6s ease; }
+  .look-strip figure:hover img { transform: scale(1.05); }
+  .look-strip figcaption {
+    position: absolute; bottom: 0; right: 0; left: 0; padding: 26px 16px 14px;
+    background: linear-gradient(to top, rgba(13,11,9,0.9), rgba(13,11,9,0));
+    font-size: 14px; font-weight: 700;
+  }
+
+  /* ---------- about / footer ---------- */
+  .about-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 40px 32px; text-align: center; max-width: 760px; margin: 0 auto;
+  }
+  .about-card p { color: var(--muted); font-size: 15px; margin-top: 10px; }
+  .about-card .swatches { display: flex; gap: 10px; justify-content: center; margin-top: 18px; }
+  .about-card .swatches i { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--border); display: block; }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: 13px;
+    padding: 40px 20px 50px; border-top: 1px solid var(--border); margin-top: 40px;
+  }
+  footer .wordmark { font-size: 22px; margin-bottom: 6px; }
+
+  .toast {
+    position: fixed; bottom: 30px; right: 50%; transform: translateX(50%) translateY(20px);
+    background: #241d13; border: 1px solid var(--accent); color: var(--text);
+    padding: 12px 28px; border-radius: 999px; font-size: 15px; font-weight: 700;
+    opacity: 0; pointer-events: none; transition: all 0.3s ease; z-index: 100;
+    box-shadow: 0 12px 34px rgba(0,0,0,0.6); white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(50%) translateY(0); }
+
+  @media (max-width: 900px) {
+    .fr-grid { grid-template-columns: 1fr; }
+    header nav a { font-size: 12px; padding: 5px 11px; }
+    .hangers { gap: 14px; }
+    .hanger { width: 108px; }
+    .look-strip figure { flex-basis: 240px; }
+    .look-strip img { height: 300px; }
+    .style-card { flex-basis: 240px; }
+  }
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="wordmark">رخت</div>
+  <nav>
+    <a href="#rack">رگال</a>
+    <a href="#fitting">اتاق پرو</a>
+    <a href="#collection">کالکشن</a>
+    <a href="#lookbook">لوک‌بوک</a>
+  </nav>
+</header>
+
+<section class="hero" id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="shade"></div>
+  <div class="hero-inner">
+    <span class="kicker">کالکشن تازه رسید</span>
+    <h1>رخت<span class="dot">.</span></h1>
+    <div class="tagline">استایلت رو خودت بچین</div>
+    <div class="subline">از رگال انتخاب کن، ببین تن مدل چطور می‌شینه، ست کاملت رو بساز</div>
+    <a class="cta" href="#fitting">شروع استایل</a>
+  </div>
+  <div class="scroll-hint">
+    <div class="mouse"></div>
+    اسکرول کن
+  </div>
+</section>
+
+<div class="ticker" dir="ltr" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<section class="block" id="rack">
+  <h2 class="reveal">رگال<span class="dot">.</span></h2>
+  <p class="explain reveal">موس رو ببر روی لباس — تکون می‌خوره. کلیک کن تا بره تن مدل</p>
+  <div class="tabs reveal" id="tabs"></div>
+  <div class="rail-wrap reveal">
+    <div class="rail"></div>
+    <div class="hangers" id="hangers"></div>
+  </div>
+</section>
+
+<section class="block" id="fitting">
+  <h2 class="reveal">اتاق پرو<span class="dot">.</span></h2>
+  <p class="explain reveal">لباست رو که انتخاب کردی، اینجا تن مدل می‌بینی‌ش</p>
+  <div class="fr-grid">
+    <div class="stage reveal" id="stage">
+      <img class="base" src="assets/model-ai-v1.jpg" alt="مدل">
+      <span class="stage-label">مدل پایه</span>
+    </div>
+    <div class="fr-side reveal">
+      <div class="guide">
+        <div><b>۱</b>از رگال انتخاب کن</div>
+        <div><b>۲</b>کلیک کن بره تن مدل</div>
+        <div><b>۳</b>ستت رو جمع کن</div>
+      </div>
+      <div class="set-panel">
+        <h3>ست من<span class="dot">.</span></h3>
+        <div class="set-empty" id="setEmpty">هنوز چیزی تن مدل نیست — از رگال انتخاب کن</div>
+        <ul class="set-list" id="setList"></ul>
+        <div class="set-total" id="setTotal" style="display:none">
+          <span>جمع ست</span>
+          <span class="val" id="totalVal"></span>
+        </div>
+        <button class="add-cart" id="addCart" disabled>افزودن ست به سبد</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="styles">
+  <h2 class="reveal">استایل‌های پیشنهادی<span class="dot">.</span></h2>
+  <p class="explain reveal">ست‌های آماده — یک کلیک تا پرو، یک کلیک تا سبد</p>
+  <div class="styles-strip reveal" id="stylesStrip"></div>
+</section>
+
+<section class="block" id="collection">
+  <h2 class="reveal">کالکشن<span class="dot">.</span></h2>
+  <p class="explain reveal">همه‌ی ۳۵ مدل — قیمت‌ها به تومان</p>
+  <div class="coll-grid" id="collGrid"></div>
+</section>
+
+<section class="block" id="lookbook">
+  <h2 class="reveal">لوک‌بوک<span class="dot">.</span></h2>
+  <p class="explain reveal">بچرخون و نگاه کن — استایل‌ها رو ورق بزن</p>
+  <div class="look-strip reveal" id="lookStrip"></div>
+</section>
+
+<section class="block" id="about">
+  <div class="about-card reveal">
+    <h2>درباره‌ی رخت<span class="dot" style="color:var(--accent)">.</span></h2>
+    <p>رخت یه فروشگاه تعاملیه که لباس رو از روی رگال برمی‌داری و همون لحظه تن مدل می‌بینی. بدون حدس، بدون برگشتی.</p>
+    <p style="font-size:12px">قالب وایت‌لیبل — نام برند و رنگ‌ها از متغیرهای بالای فایل عوض می‌شن.</p>
+    <div class="swatches">
+      <i style="background:#e8a33d"></i><i style="background:#0d0b09"></i><i style="background:#f5efe6"></i><i style="background:#4a2530"></i>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wordmark">رخت</div>
+  <div>نسخه‌ی نمایشی — اتاق پرو تعاملی</div>
+</footer>
+
+<div class="toast" id="toast">ست به سبد اضافه شد</div>
+
+<script>
+window.__errs = [];
+window.addEventListener("error", function (e) { window.__errs.push(String(e.message || e.error).slice(0, 120)); });
+(function () {
+  "use strict";
+
+  /* ============================================================
+     CLIENT PHOTOS GO HERE — رگال (RACK) WHITE-LABEL CONFIG
+     ------------------------------------------------------------
+     A future clothing-store client drops RAW garment photos here.
+     No AI work, no per-photo setup — just add a line per photo:
+
+       { img: "assets/their-shirt.jpg", name: "پیراهن سفید",
+         price: 890000, cat: "shirt" },
+
+     REQUIRED: img (photo path), name (Persian), price (تومان number),
+               cat (tee | shirt | chino | jean | shoe)
+     OPTIONAL: slot (top | bottom | shoes — auto from cat if omitted),
+               worn (fitting-room cutout PNG — our studio provides it;
+                     if omitted, the item still shows on the rack,
+                     clicking it just won't dress the model)
+
+     Everything visual — consistent crop, hanger-bar graphic,
+     hover swing/tilt/lift, price tooltip — is applied in code/CSS
+     below. Raw photos "just work".
+     ============================================================ */
+  var RACK_ITEMS = [
+    /* ---- تیشرت ---- */
+    { img: "assets/top-01.jpg", name: "تیشرت مشکی سایه‌دار", price: 550000, cat: "tee", slot: "top", fitW: 52, worn: "assets/worn/top-01.png" },
+    { img: "assets/top-02.jpg", name: "تیشرت سفید مینیمال", price: 480000, cat: "tee", slot: "top", fitW: 48, worn: "assets/worn/top-02.png" },
+    { img: "assets/top-03.jpg", name: "تیشرت سفید رگال", price: 490000, cat: "tee", slot: "top", fitW: 55, worn: "assets/worn/top-03.png" },
+    { img: "assets/top-04.jpg", name: "تیشرت صورتی", price: 590000, cat: "tee", slot: "top" },
+    { img: "assets/top-05.jpg", name: "تیشرت سبز زیتونی", price: 620000, cat: "tee", slot: "top" },
+    { img: "assets/top-06.jpg", name: "تیشرت سفید فلت‌لی", price: 480000, cat: "tee", slot: "top", fitW: 54, worn: "assets/worn/top-06.png" },
+    { img: "assets/top-07.jpg", name: "تیشرت سفید ساده", price: 450000, cat: "tee", slot: "top", fitW: 52, worn: "assets/worn/top-07.png" },
+    { img: "assets/top-08.jpg", name: "تیشرت مشکی کلاسیک", price: 520000, cat: "tee", slot: "top" },
+    { img: "assets/top-10.jpg", name: "تیشرت چریکی", price: 640000, cat: "tee", slot: "top" },
+    /* ---- پیراهن ---- */
+    { img: "assets/shirt-01.jpg", name: "پیراهن سفید مینیمال", price: 890000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-02.jpg", name: "پیراهن سفید کلاسیک", price: 920000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-03.jpg", name: "پیراهن سبز دکمه‌دار", price: 1150000, cat: "shirt", slot: "top", fitW: 56, worn: "assets/worn/shirt-03.png" },
+    { img: "assets/shirt-04.jpg", name: "پیراهن صورتی", price: 1350000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-05.jpg", name: "پیراهن راه‌راه سبز", price: 1280000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-06.jpg", name: "پیراهن رنگی تابستانه", price: 1420000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-07.jpg", name: "پیراهن طرح‌دار", price: 1560000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-08.jpg", name: "پیراهن چهارخونه", price: 1180000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-09.jpg", name: "پیراهن سفید/مشکی", price: 980000, cat: "shirt", slot: "top" },
+    { img: "assets/shirt-10.jpg", name: "پیراهن صورتی رسمی", price: 1650000, cat: "shirt", slot: "top", fitW: 50, worn: "assets/worn/shirt-10.png" },
+    /* ---- شلوار پارچه‌ای ---- */
+    { img: "assets/chino-01.jpg", name: "شلوار پارچه‌ای چهارخونه", price: 1250000, cat: "chino", slot: "bottom" },
+    { img: "assets/chino-02.jpg", name: "شلوار پارچه‌ای کرم", price: 1150000, cat: "chino", slot: "bottom", fitW: 38, worn: "assets/worn/chino-02.png" },
+    { img: "assets/chino-03.jpg", name: "شلوار پارچه‌ای بژ", price: 980000, cat: "chino", slot: "bottom", fitW: 34, worn: "assets/worn/chino-03.png" },
+    { img: "assets/chino-04.jpg", name: "شلوار کارگو بژ", price: 1380000, cat: "chino", slot: "bottom", fitW: 34, worn: "assets/worn/chino-04.png" },
+    { img: "assets/chino-05.jpg", name: "شلوار زرد تابستانه", price: 1480000, cat: "chino", slot: "bottom", fitW: 32, worn: "assets/worn/chino-05.png" },
+    /* ---- جین ---- */
+    { img: "assets/jean-01.jpg", name: "شلوار جین تاشده", price: 1150000, cat: "jean", slot: "bottom" },
+    { img: "assets/jean-02.jpg", name: "شلوار جین سفید", price: 1390000, cat: "jean", slot: "bottom" },
+    { img: "assets/jean-03.jpg", name: "ست سه‌تایی جین", price: 1550000, cat: "jean", slot: "bottom" },
+    { img: "assets/jean-04.jpg", name: "شلوار جین زاپ‌دار", price: 1690000, cat: "jean", slot: "bottom" },
+    { img: "assets/jean-05.jpg", name: "شلوار جین زاپ‌دار روشن", price: 1890000, cat: "jean", slot: "bottom" },
+    /* ---- کفش ---- */
+    { img: "assets/shoe-01.jpg", name: "کتونی فیروزه‌ای", price: 1950000, cat: "shoe", slot: "shoes", fitW: 22, worn: "assets/worn/shoe-01.png" },
+    { img: "assets/shoe-02.jpg", name: "کتونی ساق‌دار سفید/مشکی", price: 1780000, cat: "shoe", slot: "shoes", fitW: 28, worn: "assets/worn/shoe-02.png" },
+    { img: "assets/shoe-03.jpg", name: "کتونی قهوه‌ای چرم", price: 2200000, cat: "shoe", slot: "shoes" },
+    { img: "assets/shoe-04.jpg", name: "کتونی سفید استودیویی", price: 1450000, cat: "shoe", slot: "shoes", fitW: 24, worn: "assets/worn/shoe-04.png" },
+    { img: "assets/shoe-05.jpg", name: "کتونی سفید روزمره", price: 2400000, cat: "shoe", slot: "shoes", fitW: 26, worn: "assets/worn/shoe-05.png" },
+  ];
+  /* ---- white-label auto-setup: id + slot derive from img/cat ---- */
+  var SLOT_FOR_CAT = { tee: "top", shirt: "top", chino: "bottom", jean: "bottom", shoe: "shoes" };
+  RACK_ITEMS.forEach(function (g, i) {
+    if (!g.id) {
+      var m = /([^\/]+)\.[a-z0-9]+$/i.exec(g.img || "");
+      g.id = (m && m[1]) || ("item-" + i);
+    }
+    if (!g.slot) { g.slot = SLOT_FOR_CAT[g.cat] || "top"; }
+  });
+
+  var CATS = [
+    { id: "tee", label: "تیشرت" },
+    { id: "shirt", label: "پیراهن" },
+    { id: "chino", label: "شلوار پارچه‌ای" },
+    { id: "jean", label: "جین" },
+    { id: "shoe", label: "کفش" }
+  ];
+  var ZONES = {
+    top:    { top: "19%", maxW: 62, z: 3 },
+    bottom: { top: "50%", maxW: 48, z: 2 },
+    shoes:  { top: "83%", maxW: 34, z: 4 }
+  };
+  /* target garment heights as fraction of stage height (for aspect-correct fit) */
+  var SLOT_H = { top: 0.34, bottom: 0.44, shoes: 0.17 };
+
+  var worn = { top: null, bottom: null, shoes: null };
+  var byId = {};
+  RACK_ITEMS.forEach(function (g) { byId[g.id] = g; });
+
+  var stage = document.getElementById("stage");
+  var hangersEl = document.getElementById("hangers");
+  var tabsEl = document.getElementById("tabs");
+  var setList = document.getElementById("setList");
+  var setEmpty = document.getElementById("setEmpty");
+  var setTotal = document.getElementById("setTotal");
+  var totalVal = document.getElementById("totalVal");
+  var addCart = document.getElementById("addCart");
+  var toast = document.getElementById("toast");
+  var activeCat = "tee";
+
+  function priceStr(n) { return n.toLocaleString("fa-IR") + " تومان"; }
+  function layerFor(g) { return document.getElementById("worn-" + g.id); }
+
+  function makeLayer(g) {
+    var z = ZONES[g.slot];
+    var d = document.createElement("div");
+    d.className = "worn-layer";
+    d.id = "worn-" + g.id;
+    d.style.top = z.top;
+    d.style.left = "50%";
+    d.style.width = z.maxW + "%";
+    d.style.zIndex = z.z;
+    var img = document.createElement("img");
+    img.alt = g.name;
+    img.onload = function () {
+      /* fit garment to slot target height; width follows image aspect */
+      var sr = document.getElementById("stage").getBoundingClientRect();
+      var ar = img.naturalWidth / img.naturalHeight;
+      var wPct = (g.fitW !== undefined)
+        ? g.fitW
+        : SLOT_H[g.slot] * (sr.height / sr.width) * ar * 100;
+      wPct = Math.max(10, Math.min(z.maxW, wPct));
+      d.style.width = wPct.toFixed(1) + "%";
+    };
+    img.src = g.worn;
+    d.appendChild(img);
+    return d;
+  }
+
+  function wear(g) {
+    if (typeof g === "string") g = byId[g];
+    if (!g) return;
+    /* white-label: item without a fitting-room cutout still lives on the rack */
+    if (!g.worn) {
+      showToast("«" + g.name + "» — عکس پرو به‌زودی اضافه می‌شود");
+      return;
+    }
+    var cur = worn[g.slot];
+    if (cur === g.id) { remove(g); return; }
+    if (cur) { remove(byId[cur]); }
+    worn[g.slot] = g.id;
+    var layer = layerFor(g) || makeLayer(g);
+    if (!layerFor(g)) { stage.appendChild(layer); }
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { layer.classList.add("on"); });
+    });
+    syncUI();
+  }
+
+  function remove(g) {
+    if (typeof g === "string") g = byId[g];
+    if (!g) return;
+    worn[g.slot] = null;
+    var layer = layerFor(g);
+    if (layer) {
+      layer.classList.remove("on");
+      setTimeout(function () { if (layer.parentNode) layer.parentNode.removeChild(layer); }, 480);
+    }
+    syncUI();
+  }
+
+  function renderTabs() {
+    tabsEl.innerHTML = "";
+    CATS.forEach(function (c, i) {
+      var b = document.createElement("button");
+      b.textContent = c.label;
+      b.setAttribute("data-cat", c.id);
+      if (c.id === activeCat) b.classList.add("active");
+      tabsEl.appendChild(b);
+    });
+  }
+
+  function renderRack() {
+    hangersEl.innerHTML = "";
+    var items = RACK_ITEMS.filter(function (g) { return g.cat === activeCat; });
+    for (var i = 0; i < items.length; i += 6) {
+      (function (chunk) {
+        var row = document.createElement("div");
+        row.className = "rail-row";
+        var rail = document.createElement("div");
+        rail.className = "rail";
+        row.appendChild(rail);
+        var hg = document.createElement("div");
+        hg.className = "hangers";
+        chunk.forEach(function (g) {
+          var h = document.createElement("div");
+          h.className = "hanger" + (worn[g.slot] === g.id ? " worn" : "");
+          h.innerHTML =
+            '<div class="tip">' + g.name + " — " + priceStr(g.price) + "</div>" +
+            '<div class="hook"></div>' +
+            '<div class="card">' +
+              '<img loading="lazy" src="' + g.img + '" alt="' + g.name + '">' +
+              '<div class="cap"><div class="nm">' + g.name + '</div>' +
+              '<div class="pr">' + priceStr(g.price) + "</div></div>" +
+            "</div>";
+          h.addEventListener("click", function () {
+            wear(g);
+            if (window.innerWidth < 900) {
+              document.getElementById("fitting").scrollIntoView({ behavior: "smooth" });
+            }
+          });
+          hg.appendChild(h);
+        });
+        row.appendChild(hg);
+        hangersEl.appendChild(row);
+      })(items.slice(i, i + 6));
+    }
+  }
+
+  function syncUI() {
+    renderRack();
+    var ids = ["top", "bottom", "shoes"].map(function (s) { return worn[s]; }).filter(Boolean);
+    setList.innerHTML = "";
+    if (!ids.length) {
+      setEmpty.style.display = "";
+      setTotal.style.display = "none";
+      addCart.disabled = true;
+      return;
+    }
+    setEmpty.style.display = "none";
+    var total = 0;
+    ids.forEach(function (id) {
+      var g = byId[id];
+      total += g.price;
+      var li = document.createElement("li");
+      li.innerHTML =
+        '<img loading="lazy" src="' + g.img + '" alt="' + g.name + '">' +
+        '<span class="nm">' + g.name + "</span>" +
+        '<span class="pr">' + priceStr(g.price) + "</span>";
+      var rm = document.createElement("button");
+      rm.className = "rm";
+      rm.textContent = "حذف";
+      rm.addEventListener("click", function () { remove(g); });
+      li.appendChild(rm);
+      setList.appendChild(li);
+    });
+    totalVal.textContent = priceStr(total);
+    setTotal.style.display = "";
+    addCart.disabled = false;
+  }
+
+  tabsEl.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    activeCat = b.getAttribute("data-cat");
+    Array.prototype.forEach.call(tabsEl.querySelectorAll("button"), function (x) {
+      x.classList.toggle("active", x === b);
+    });
+    renderRack();
+  });
+
+  /* ---------- collection ---------- */
+  function renderCollection() {
+    var grid = document.getElementById("collGrid");
+    RACK_ITEMS.forEach(function (g) {
+      var c = document.createElement("div");
+      c.className = "coll-card reveal";
+      c.innerHTML =
+        '<div class="ph"><img loading="lazy" src="' + g.img + '" alt="' + g.name + '"></div>' +
+        '<div class="inf"><div class="nm">' + g.name + '</div>' +
+        '<div class="pr">' + priceStr(g.price) + "</div></div>";
+      var b = document.createElement("button");
+      b.textContent = "پرو کن";
+      b.addEventListener("click", function () {
+        wear(g);
+        document.getElementById("fitting").scrollIntoView({ behavior: "smooth" });
+      });
+      c.querySelector(".inf").appendChild(b);
+      grid.appendChild(c);
+    });
+  }
+
+  /* ---------- styles (white-label: CLIENT STYLES GO HERE) ---------- */
+  var STYLES = [
+    { img: "assets/styles/look1.jpg", title: "مشکی مینیمال", items: ["top-01", "chino-02", "shoe-01"] },
+    { img: "assets/styles/look2.jpg", title: "سبز ارتشی", items: ["shirt-03", "chino-04", "shoe-02"] },
+    { img: "assets/styles/look3.jpg", title: "سفید تمیز", items: ["top-06", "chino-03", "shoe-04"] },
+    { img: "assets/styles/look4.jpg", title: "صورتی جسور", items: ["shirt-10", "chino-05", "shoe-05"] },
+    { img: "assets/styles/look5.jpg", title: "جین آبی", items: ["top-01", "jean-01", "shoe-02"] }
+  ];
+
+  function renderStyles() {
+    var strip = document.getElementById("stylesStrip");
+    STYLES.forEach(function (s) {
+      var card = document.createElement("div");
+      card.className = "style-card";
+      var total = 0;
+      var chips = "";
+      s.items.forEach(function (id) {
+        var g = byId[id];
+        if (!g) return;
+        total += g.price;
+        chips += '<span class="chip">' + g.name + " — <b>" + priceStr(g.price) + "</b></span>";
+      });
+      card.innerHTML =
+        '<div class="ph"><img loading="lazy" src="' + s.img + '" alt="' + s.title + '"></div>' +
+        '<div class="inf"><div class="st">' + s.title + "</div>" +
+        '<div class="chips">' + chips + "</div>" +
+        '<div class="total"><span>جمع ست</span><span class="val">' + priceStr(total) + "</span></div>" +
+        '<div class="btns">' +
+        '<button class="try">امتحان این استایل</button>' +
+        '<button class="tocart">افزودن ست به سبد</button>' +
+        "</div></div>";
+      card.querySelector(".try").addEventListener("click", function () {
+        wearStyleItems(s);
+        document.getElementById("fitting").scrollIntoView({ behavior: "smooth" });
+      });
+      card.querySelector(".tocart").addEventListener("click", function () {
+        wearStyleItems(s);
+        addCart.click(); /* reuse the existing cart flow */
+      });
+      strip.appendChild(card);
+    });
+  }
+
+  /* wear all three style items; items without a cutout take the existing toast path */
+  function wearStyleItems(s) {
+    s.items.forEach(function (id) {
+      var g = byId[id];
+      if (g && window.__rakht.worn[g.slot] !== id) window.__rakht.wear(id);
+    });
+  }
+
+  /* ---------- lookbook ---------- */
+  function renderLookbook() {
+    var strip = document.getElementById("lookStrip");
+    var slides = [
+      { img: "assets/model-ai-v1.jpg", cap: "مدل پایه — استایلت رو بساز" },
+      { img: "assets/rack-bonus.jpg", cap: "رگال رخت" },
+      { img: "assets/top-01.jpg", cap: "تیشرت مشکی سایه‌دار" },
+      { img: "assets/shirt-05.jpg", cap: "پیراهن راه‌راه سبز" },
+      { img: "assets/chino-03.jpg", cap: "شلوار پارچه‌ای بژ" },
+      { img: "assets/jean-04.jpg", cap: "شلوار جین زاپ‌دار" },
+      { img: "assets/shoe-01.jpg", cap: "کتونی فیروزه‌ای" },
+      { img: "assets/top-04.jpg", cap: "تیشرت صورتی" }
+    ];
+    slides.forEach(function (s) {
+      var f = document.createElement("figure");
+      f.innerHTML = '<img loading="lazy" src="' + s.img + '" alt="' + s.cap + '"><figcaption>' + s.cap + "</figcaption>";
+      strip.appendChild(f);
+    });
+  }
+
+  /* ---------- ticker ---------- */
+  function renderTicker() {
+    var items = [
+      "ارسال رایگان برای خرید بالای <b>۲ میلیون تومان</b>",
+      "۷ روز ضمانت <b>مرجوعی</b>",
+      "<b>۳۵ مدل</b> تازه روی رگال",
+      "قیمت‌ها به <b>تومان</b>"
+    ];
+    var track = document.getElementById("tickerTrack");
+    var html = "";
+    for (var r = 0; r < 3; r++) {
+      items.forEach(function (t) { html += "<span>" + t + "</span><span>◆</span>"; });
+    }
+    track.innerHTML = html + html; /* seamless loop */
+  }
+
+  /* ---------- toast ---------- */
+  var toastTimer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
+  }
+  addCart.addEventListener("click", function () {
+    showToast("ست به سبد اضافه شد");
+  });
+
+  /* ---------- sticky: reveal + parallax + header ---------- */
+  function initMotion() {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+
+    var heroBg = document.getElementById("heroBg");
+    var hdr = document.getElementById("hdr");
+    var ticking = false;
+    function onScroll() {
+      var y = window.scrollY;
+      heroBg.style.transform = "translateY(" + (y * 0.32) + "px)";
+      hdr.classList.toggle("scrolled", y > 40);
+      ticking = false;
+    }
+    window.addEventListener("scroll", function () {
+      if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
+    }, { passive: true });
+  }
+
+  /* expose for QC automation */
+  window.__rakht = { wear: wear, remove: remove, byId: byId, worn: worn, GARMENTS: RACK_ITEMS, RACK_ITEMS: RACK_ITEMS, STYLES: STYLES };
+
+  renderTabs();
+  renderRack();
+  renderStyles();
+  renderCollection();
+  renderLookbook();
+  renderTicker();
+  syncUI();
+  initMotion();
+})();
+</script>
+</body>
+</html>
