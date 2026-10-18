@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>هایپرهلس — نمونه راهرو سه‌بعدی</title>
+<style>
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#f7f3ea;
+    font-family:Tahoma,Arial,sans-serif;-webkit-user-select:none;user-select:none;
+    touch-action:none;overscroll-behavior:none}
+  #app{position:fixed;inset:0}
+  canvas{display:block}
+  /* paper grain + vignette */
+  #grain{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:.08;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E")}
+  #vig{position:fixed;inset:0;pointer-events:none;z-index:4;
+    background:radial-gradient(ellipse at center,transparent 55%,rgba(43,26,15,.28) 100%)}
+  #fade{position:fixed;inset:0;background:#fdfbf6;z-index:20;pointer-events:none;
+    transition:opacity 1.4s ease;opacity:1}
+  #hud{position:fixed;top:14px;left:0;right:0;z-index:10;display:flex;justify-content:center;pointer-events:none}
+  #chip{background:rgba(20,32,22,.72);color:#f3efe2;font-size:14px;padding:8px 18px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(4px)}
+  #hint{position:fixed;bottom:18px;left:0;right:0;z-index:10;display:flex;justify-content:center;pointer-events:none}
+  #hint span{background:rgba(20,32,22,.6);color:#f3efe2;font-size:12.5px;padding:7px 16px;border-radius:999px}
+  #stick{position:fixed;z-index:11;width:110px;height:110px;border-radius:50%;display:none;
+    border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.08);pointer-events:none}
+  #nub{position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;
+    background:rgba(255,255,255,.55);transform:translate(-50%,-50%)}
+  #lock{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;
+    background:rgba(24,20,14,.45);color:#fdfbf6;font-size:15px;cursor:pointer}
+  #lock div{background:rgba(20,32,22,.85);padding:14px 26px;border-radius:14px;border:1px solid rgba(255,255,255,.2)}
+</style>
+<script type="importmap">
+{"imports":{"three":"./three.module.js"}}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="vig"></div><div id="grain"></div>
+<div id="hud"><div id="chip">🍃 نمونه راهرو — هایپرهلس (سه‌بعدی)</div></div>
+<div id="hint"><span id="hintTxt"></span></div>
+<div id="stick"><div id="nub"></div></div>
+<div id="lock"><div>برای شروع قدم زدن کلیک کن</div></div>
+<div id="fade"></div>
+<script>
+/* boot watchdog: if the 3D module fails (no network / no WebGL), explain in Persian */
+window.__bootTimer=setTimeout(function(){
+  if(!window.__booted){
+    var l=document.getElementById('lock');
+    l.style.display='flex';
+    l.innerHTML='<div>خطا در بارگذاری نمایش سه‌بعدی<br>اینترنت را بررسی و صفحه را تازه‌سازی کن</div>';
+  }
+},9000);
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+/* ---------- renderer / scene ---------- */
+const app = document.getElementById('app');
+let renderer;
+try{
+  renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
+}catch(err){
+  var l0=document.getElementById('lock'); l0.style.display='flex';
+  l0.innerHTML='<div>مرورگر شما از WebGL پشتیبانی نمی‌کند</div>';
+  throw err;
+}
+let PR = Math.min(window.devicePixelRatio||1, 2);
+renderer.setPixelRatio(PR);
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x3a2c20);
+scene.fog = new THREE.FogExp2(0x3a2c20, 0.016);
+
+const camera = new THREE.PerspectiveCamera(68, innerWidth/innerHeight, 0.1, 40);
+camera.rotation.order = 'YXZ';
+
+/* toon gradient */
+const gdata = new Uint8Array([110,160,215,255]);
+const gradMap = new THREE.DataTexture(gdata, 4, 1, THREE.RedFormat);
+gradMap.needsUpdate = true;
+gradMap.minFilter = gradMap.magFilter = THREE.NearestFilter;
+const toon = c => new THREE.MeshToonMaterial({color:c, gradientMap:gradMap});
+
+/* ---------- canvas textures ---------- */
+function canvasTex(w,h,draw,rx=1,ry=1){
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  draw(c.getContext('2d'),w,h);
+  const t=new THREE.CanvasTexture(c);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx,ry);
+  t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4;
+  return t;
+}
+const floorTex = canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle='#c8bfa9'; g.fillRect(0,0,w,h);
+  g.strokeStyle='#b9b09a'; g.lineWidth=5;
+  for(let i=0;i<=2;i++){ g.beginPath();g.moveTo(i*128,0);g.lineTo(i*128,h);g.stroke();
+    g.beginPath();g.moveTo(0,i*128);g.lineTo(w,i*128);g.stroke(); }
+  g.fillStyle='rgba(255,255,255,.25)';
+  for(let i=0;i<40;i++) g.fillRect(Math.random()*w,Math.random()*h,3,3);
+},6,40);
+const brickTex = canvasTex(256,256,(g,w,h)=>{
+  g.fillStyle='#8a5a3c'; g.fillRect(0,0,w,h);
+  g.fillStyle='#9c6a48';
+  const bh=32;
+  for(let y=0;y<h;y+=bh){ const off=(y/bh)%2?32:0;
+    for(let x=-32;x<w;x+=64) g.fillRect(x+off+2,y+2,60,bh-4); }
+  g.fillStyle='rgba(60,30,15,.25)';
+  for(let i=0;i<60;i++) g.fillRect(Math.random()*w,Math.random()*h,4,4);
+},3,2);
+const leafTex = canvasTex(128,256,(g,w,h)=>{
+  g.clearRect(0,0,w,h);
+  g.strokeStyle='#3d6b2f'; g.lineWidth=5;
+  g.beginPath(); g.moveTo(w/2,0); g.quadraticCurveTo(w/2+14,h/2,w/2-6,h); g.stroke();
+  const greens=['#4d8a3a','#5da244','#3a7a30','#6fb04e'];
+  for(let i=0;i<16;i++){
+    const y=12+i*15, x=w/2+Math.sin(i*1.3)*22+(Math.random()*16-8);
+    g.fillStyle=greens[i%4];
+    g.beginPath(); g.ellipse(x,y,13,8,Math.sin(i)*0.9,0,7); g.fill();
+    g.strokeStyle='rgba(30,60,25,.5)'; g.lineWidth=1.5; g.stroke();
+  }
+});
+leafTex.wrapS=leafTex.wrapT=THREE.ClampToEdgeWrapping;
+
+/* ink outlines */
+const inkMat = new THREE.LineBasicMaterial({color:0x2b1e14, transparent:true, opacity:0.5});
+function ink(mesh){
+  const e=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry,24), inkMat);
+  mesh.add(e); return mesh;
+}
+function box(w,h,d,mat,x,y,z,parent){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(x,y,z); parent.add(m); return m;
+}
+
+/* ---------- lights ---------- */
+scene.add(new THREE.HemisphereLight(0xfff2dc, 0x7a5f46, 1.35));
+const sun=new THREE.DirectionalLight(0xffe6bd,1.7); sun.position.set(4,8,6); scene.add(sun);
+const cafeGlow=new THREE.PointLight(0xffc978, 90, 20, 1.8); cafeGlow.position.set(0,2.4,25.5); scene.add(cafeGlow);
+const coolIn=new THREE.PointLight(0xbcd2ff, 40, 14, 1.8); coolIn.position.set(0,2.6,0.5); scene.add(coolIn);
+
+/* ---------- architecture ---------- */
+const AISLE_W=3.4, AISLE_L=26;
+box(14,0.1,AISLE_L+8, new THREE.MeshToonMaterial({color:0xffffff,map:floorTex,gradientMap:gradMap}), 0,-0.05,AISLE_L/2, scene);
+const wallMat=new THREE.MeshToonMaterial({color:0xffffff,map:brickTex,gradientMap:gradMap});
+ink(box(0.3,3.6,AISLE_L+8, wallMat, -3.1,1.8,AISLE_L/2, scene));
+const ceilMat=toon(0x241a12);
+box(14,0.2,AISLE_L+8, ceilMat, 0,3.5,AISLE_L/2, scene);
+/* ceiling light strips */
+const stripMat=new THREE.MeshBasicMaterial({color:0xfff1cf});
+for(let z=2; z<AISLE_L; z+=4){
+  box(0.18,0.06,2.6, stripMat, 0,3.38,z, scene);
+}
+/* far-end warm glow (cafe hint) + near-end dark */
+const glowPlane=new THREE.Mesh(new THREE.PlaneGeometry(7,3.4),
+  new THREE.MeshBasicMaterial({color:0xffbe6e, transparent:true, opacity:0.85, fog:false}));
+glowPlane.position.set(0,1.7,AISLE_L+2.4); glowPlane.rotation.y=Math.PI; scene.add(glowPlane);
+const darkPlane=new THREE.Mesh(new THREE.PlaneGeometry(7,3.4),
+  new THREE.MeshBasicMaterial({color:0x120d09, fog:false}));
+darkPlane.position.set(0,1.7,-2.4); scene.add(darkPlane);
+/* dim far wall on the right: hints at the next aisle, kills the black void */
+box(0.3,3.6,AISLE_L+8, new THREE.MeshToonMaterial({color:0x5a4636,map:brickTex,gradientMap:gradMap}), 7.5,1.8,AISLE_L/2, scene);
+
+/* ---------- racks ---------- */
+const metalMat=toon(0xb9c4b2), darkMetal=toon(0x6f7a6c);
+const vines=[]; // for sway animation
+function rackRun(len, depth, x, zc, doubleSided){
+  /* rack runs ALONG the aisle (local Z = aisle direction) */
+  const g=new THREE.Group(); g.position.set(x,0,zc); scene.add(g);
+  const shelfY=[0.28,0.75,1.22,1.69,2.12];
+  const nBays=Math.max(1,Math.round(len/2));
+  const bayL=len/nBays;
+  for(let b=0;b<=nBays;b++){
+    const pz=-len/2+b*bayL;
+    ink(box(depth,2.35,0.09, darkMetal, 0,1.17,pz, g));
+  }
+  for(const y of shelfY) ink(box(depth,0.07,len, metalMat, 0,y,0, g));
+  ink(box(depth,0.09,len, darkMetal, 0,2.36,0, g)); // top rail
+  /* back panel for wall rack (wall side = -x) */
+  if(!doubleSided) ink(box(0.05,2.35,len, toon(0x9aa394), -depth/2+0.03,1.17,0, g));
+  return {group:g, shelfY, len, depth, x, zc, doubleSided};
+}
+const rackL=rackRun(24, 0.55, -2.05, 13, false);   // wall rack (left)
+const rackR=rackRun(24, 0.95,  2.2, 13, true);     // double-sided (right)
+
+/* ---------- products (instanced) ---------- */
+const prodGeo=new THREE.BoxGeometry(1,1,1);
+const prodMat=new THREE.MeshToonMaterial({color:0xffffff, gradientMap:gradMap});
+const palette=[0x7fb069,0xe0a458,0xc96f4a,0xe8d8b0,0x9dbb7a,0xd98841,0xb5651d,0xf0e6cc,0x6a994e,0xdd9787];
+const spots=[];
+for(const r of [rackL,rackR]){
+  const faces = r.doubleSided ? [-1,1] : [1];   // wall rack: products face the aisle (+x)
+  for(const y of r.shelfY){
+    const topShelf = (y===2.12);                 // tiny jars only: clears the top rail + pots
+    for(const f of faces){
+      const xoff = f*(r.depth/2-0.09);
+      for(let pz=-r.len/2+0.35; pz<r.len/2-0.3; pz+=0.34+Math.random()*0.12){
+        if(Math.random()<0.12) continue; // gaps
+        const h = topShelf ? 0.12+Math.random()*0.02 : 0.22+Math.random()*0.14;
+        spots.push({x:r.x+xoff, y:y+0.037, z:r.zc+pz,
+          w:0.16, h:h, d:0.2+Math.random()*0.12});
+      }
+    }
+  }
+}
+const prods=new THREE.InstancedMesh(prodGeo, prodMat, spots.length);
+{
+  const m=new THREE.Matrix4(), q=new THREE.Quaternion(), s=new THREE.Vector3(), p=new THREE.Vector3();
+  const col=new THREE.Color();
+  spots.forEach((sp,i)=>{
+    p.set(sp.x, sp.y+sp.h/2, sp.z); s.set(sp.w,sp.h,sp.d);
+    m.compose(p,q,s); prods.setMatrixAt(i,m);
+    col.setHex(palette[(Math.random()*palette.length)|0]).multiplyScalar(0.85+Math.random()*0.3);
+    prods.setColorAt(i,col);
+  });
+  prods.instanceMatrix.needsUpdate=true;
+  if(prods.instanceColor) prods.instanceColor.needsUpdate=true;
+}
+scene.add(prods);
+
+/* ---------- pothos (hanging plants) ---------- */
+const vineMat=new THREE.MeshToonMaterial({map:leafTex, transparent:true, alphaTest:0.45,
+  side:THREE.DoubleSide, gradientMap:gradMap, color:0xffffff});
+const potMat=toon(0x8a5f3d);
+function pothos(x,y,z){
+  const g=new THREE.Group(); g.position.set(x,y,z); scene.add(g);
+  ink(box(0.34,0.26,0.34, potMat, 0,0,0, g));
+  for(let i=0;i<4;i++){
+    const vh=0.9+Math.random()*0.7;
+    const v=new THREE.Mesh(new THREE.PlaneGeometry(0.5,vh), vineMat);
+    v.position.set((Math.random()-0.5)*0.3, -vh/2-0.1, (Math.random()-0.5)*0.3);
+    v.rotation.y=Math.random()*Math.PI;
+    g.add(v);
+  }
+  vines.push({g, ph:Math.random()*6.28});
+}
+for(let z=2.5; z<24; z+=1.7){
+  pothos(-2.05+(Math.random()*0.2-0.1), 2.55, z);      // on wall rack top
+  pothos( 2.20+(Math.random()*0.3-0.15), 2.55, z+0.8); // on double rack top
+}
+
+/* ---------- player controller ---------- */
+const player={x:0, z:1.6, yaw:Math.PI, pitch:0, bob:0};
+const keys={};
+addEventListener('keydown',e=>{keys[e.code]=true;});
+addEventListener('keyup',e=>{keys[e.code]=false;});
+function applyLook(){
+  camera.position.set(player.x, 1.6+Math.sin(player.bob)*0.035*(moving?1:0), player.z);
+  camera.rotation.set(player.pitch, player.yaw, 0);
+}
+let moving=false;
+/* touch UI only when there is NO fine pointer (phones/tablets);
+   touchscreen laptops keep the desktop mouse-look */
+const finePointer = window.matchMedia && matchMedia('(pointer:fine)').matches;
+const isTouch = !finePointer;
+document.getElementById('hintTxt').textContent = isTouch
+  ? 'نیمه چپ صفحه: جوی‌استیک راه رفتن • نیمه راست: درگ برای نگاه'
+  : 'کلیک کن، بعد با موس نگاه کن • راه رفتن با W A S D';
+const lockEl=document.getElementById('lock');
+if(isTouch) lockEl.style.display='none';
+else lockEl.addEventListener('click',()=>renderer.domElement.requestPointerLock());
+document.addEventListener('pointerlockchange',()=>{
+  lockEl.style.display=document.pointerLockElement?'none':'flex';
+});
+document.addEventListener('mousemove',e=>{
+  if(document.pointerLockElement){
+    player.yaw-=e.movementX*0.0023; player.pitch-=e.movementY*0.0023;
+    player.pitch=Math.max(-1.2,Math.min(1.2,player.pitch));
+  }
+});
+/* touch: left half = stick, right half = look */
+const stick=document.getElementById('stick'), nub=document.getElementById('nub');
+let moveT=null, lookT=null, stickOX=0, stickOY=0, lookLX=0, lookLY=0;
+const stickVec={x:0,y:0};
+addEventListener('touchstart',e=>{
+  for(const t of e.changedTouches){
+    if(t.clientX<innerWidth/2 && moveT===null){
+      moveT=t.identifier; stickOX=t.clientX; stickOY=t.clientY;
+      stick.style.display='block';
+      stick.style.left=(stickOX-55)+'px'; stick.style.top=(stickOY-55)+'px';
+    }else if(lookT===null){ lookT=t.identifier; lookLX=t.clientX; lookLY=t.clientY; }
+  }
+  e.preventDefault();
+},{passive:false});
+addEventListener('touchmove',e=>{
+  for(const t of e.changedTouches){
+    if(t.identifier===moveT){
+      let dx=(t.clientX-stickOX)/45, dy=(t.clientY-stickOY)/45;
+      const l=Math.hypot(dx,dy); if(l>1){dx/=l;dy/=l;}
+      stickVec.x=dx; stickVec.y=dy;
+      nub.style.transform=`translate(calc(-50% + ${dx*32}px),calc(-50% + ${dy*32}px))`;
+    }else if(t.identifier===lookT){
+      player.yaw-=(t.clientX-lookLX)*0.005; player.pitch-=(t.clientY-lookLY)*0.005;
+      player.pitch=Math.max(-1.2,Math.min(1.2,player.pitch));
+      lookLX=t.clientX; lookLY=t.clientY;
+    }
+  }
+  e.preventDefault();
+},{passive:false});
+function touchEnd(e){
+  for(const t of e.changedTouches){
+    if(t.identifier===moveT){ moveT=null; stickVec.x=stickVec.y=0;
+      stick.style.display='none'; nub.style.transform='translate(-50%,-50%)'; }
+    if(t.identifier===lookT) lookT=null;
+  }
+}
+addEventListener('touchend',touchEnd); addEventListener('touchcancel',touchEnd);
+
+/* ---------- loop ---------- */
+const clock=new THREE.Clock();
+let fpsA=60, slowT=0;
+const fwd=new THREE.Vector3(), rgt=new THREE.Vector3();
+function tick(){
+  requestAnimationFrame(tick);
+  const dt=Math.min(clock.getDelta(),0.05);
+  /* fps auto-tune */
+  fpsA=fpsA*0.95+(1/Math.max(dt,1e-3))*0.05;
+  if(fpsA<28 && PR>1){ slowT+=dt; if(slowT>2){ PR=1; renderer.setPixelRatio(1); } }
+  else slowT=0;
+  /* input */
+  let ix=0,iz=0;
+  if(keys.KeyW||keys.ArrowUp)iz+=1; if(keys.KeyS||keys.ArrowDown)iz-=1;
+  if(keys.KeyA||keys.ArrowLeft)ix-=1; if(keys.KeyD||keys.ArrowRight)ix+=1;
+  ix+=stickVec.x; iz-=stickVec.y;
+  const il=Math.hypot(ix,iz); if(il>1){ix/=il;iz/=il;}
+  moving=il>0.08;
+  moveClean(ix,iz,2.6*dt);
+  player.bob+=dt*9*(moving?1:0);
+  /* collision: stay in the aisle */
+  player.x=Math.max(-1.35,Math.min(1.35,player.x));
+  player.z=Math.max(0.6,Math.min(25.2,player.z));
+  /* pothos sway */
+  const t=clock.elapsedTime;
+  for(const v of vines) v.g.rotation.z=Math.sin(t*1.3+v.ph)*0.045;
+  applyLook();
+  renderer.render(scene,camera);
+}
+/* fix movement math (clean pass) */
+const _e=new THREE.Euler(0,0,0,'YXZ');
+function moveClean(ix,iz,sp){
+  _e.set(0,player.yaw,0);
+  fwd.set(0,0,-1).applyEuler(_e); fwd.y=0; fwd.normalize();
+  rgt.set(1,0,0).applyEuler(_e); rgt.y=0; rgt.normalize();
+  player.x+=(fwd.x*iz+rgt.x*ix)*sp;
+  player.z+=(fwd.z*iz+rgt.z*ix)*sp;
+}
+addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+applyLook();
+tick();
+window.__booted=true; clearTimeout(window.__bootTimer);
+requestAnimationFrame(()=>{document.getElementById('fade').style.opacity='0';});
+</script>
+</body>
+</html>
