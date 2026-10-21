@@ -147,6 +147,7 @@ input.fin::placeholder{color:#a9bcb0;font-weight:400;font-size:15px}
     </div>
     <p class="err" id="loginErr" hidden></p>
     <button class="btn main" id="loginBtn" type="button" data-i18n="login_btn"></button>
+    <button class="btn second" id="quickLoginBtn" type="button" data-i18n="quick_login"></button>
     <button class="linkbtn" id="sellerLink" type="button" data-i18n="seller_link"></button>
   </section>
 
@@ -292,6 +293,7 @@ window.I18N = {
     name_label: 'نام و نام خانوادگی',
     name_ph: 'نامت را بنویس',
     login_btn: 'ورود و دیدن کارت من',
+    quick_login: 'ورود سریع با حساب نمونه',
     login_err_phone: 'شماره موبایل درست نیست؛ یک شماره‌ی ۱۱ رقمی وارد کن که با ۰۹ شروع شود.',
     login_err_name: 'برای ساخت کارت، اول نامت را بنویس.',
     seller_link: 'ورود فروشنده',
@@ -354,6 +356,7 @@ window.I18N = {
     name_label: 'الاسم الكامل',
     name_ph: 'اكتب اسمك',
     login_btn: 'دخول وعرض بطاقتي',
+    quick_login: 'دخول سريع بالحساب التجريبي',
     login_err_phone: 'رقم الجوال غير صحيح؛ أدخل رقمًا من ١١ خانة يبدأ بـ ٠٩.',
     login_err_name: 'لإنشاء البطاقة، اكتب اسمك أولًا.',
     seller_link: 'دخول البائع',
@@ -416,6 +419,7 @@ window.I18N = {
     name_label: 'Full name',
     name_ph: 'Type your name',
     login_btn: 'Sign in & see my card',
+    quick_login: 'Quick sign-in with the sample account',
     login_err_phone: 'That mobile number looks wrong; enter an 11-digit number starting with 09.',
     login_err_name: 'To create your card, enter your name first.',
     seller_link: 'Seller sign-in',
@@ -692,6 +696,15 @@ window.I18N = {
     state.session = phone; save();
     renderCustomer(); showView('customer');
   }
+  function doQuickLogin() {
+    var phone = CFG.sampleCustomer.phone;
+    if (!state.customers[phone]) {
+      state.customers[phone] = seedState().customers[phone];
+    }
+    $('loginErr').hidden = true;
+    state.session = phone; save();
+    renderCustomer(); showView('customer');
+  }
   function doLogout() {
     state.session = null; save();
     $('phoneInput').value = ''; $('nameInput').value = ''; $('nameWrap').hidden = true;
@@ -793,6 +806,7 @@ window.I18N = {
 
   /* ---------- wiring ---------- */
   $('loginBtn').addEventListener('click', doLogin);
+  $('quickLoginBtn').addEventListener('click', doQuickLogin);
   $('logoutBtn').addEventListener('click', doLogout);
   $('sellerLink').addEventListener('click', gotoSeller);
   $('sellerLink2').addEventListener('click', gotoSeller);
