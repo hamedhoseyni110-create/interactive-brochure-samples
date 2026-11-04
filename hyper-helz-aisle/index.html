@@ -1,1 +1,258 @@
-placeholder
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>هایپرهلس — پرده ۲: گشتن</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #ffffff; font-family: Tahoma, sans-serif; }
+  body { height: 400vh; }
+  #scene {
+    position: fixed; inset: 0; width: 100vw; height: 100dvh;
+    display: block; pointer-events: none;
+  }
+  .overlay {
+    position: fixed; left: 0; right: 0; text-align: center;
+    pointer-events: none; z-index: 5; padding: 0 20px;
+  }
+  #act { top: 18px; font-size: 13px; color: #888; }
+  .beat {
+    top: 16vh; opacity: 0;
+  }
+  .beat h2 { font-size: clamp(26px, 7vw, 48px); color: #1a1a1a; font-weight: 700; }
+  .beat p { margin-top: 8px; font-size: clamp(14px, 3.6vw, 19px); color: #555; }
+  #endnote { bottom: 33vh; font-size: clamp(15px, 4vw, 20px); color: #333; opacity: 0; }
+  #cards {
+    position: fixed; left: 0; right: 0; bottom: 26px; z-index: 6;
+    display: flex; justify-content: center; gap: 10px; pointer-events: none;
+    padding: 0 12px;
+  }
+  .card {
+    width: min(26vw, 120px); background: #fff; border: 1px solid #ddd;
+    border-radius: 12px; padding: 8px 8px 6px; text-align: center;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08); opacity: 0;
+  }
+  .card img { width: 100%; height: auto; display: block; border-radius: 6px; }
+  .card div { margin-top: 5px; font-size: 13px; color: #333; }
+  #progress {
+    position: fixed; bottom: 0; right: 0; height: 3px; background: #f59e0b;
+    width: 0%; z-index: 7;
+  }
+</style>
+<script type="importmap">
+{ "imports": { "three": "./three.module.min.js" } }
+</script>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div class="overlay" id="act">پرده ۲ — گشتن</div>
+
+<div class="overlay beat" id="beat1">
+  <h2>قدم می‌زنی بین رگال‌ها</h2>
+  <p>هر قدم، یه انتخاب تازه</p>
+</div>
+<div class="overlay beat" id="beat2">
+  <h2>هر محصول، یه انتخاب سالم</h2>
+  <p>رنگ‌ها با قدم‌هات جان می‌گیرند</p>
+</div>
+<div class="overlay beat" id="beat3">
+  <h2>جلوتر، جزیره منتظرته</h2>
+  <p>بوی غذای تازه از همان‌جاست</p>
+</div>
+
+<div class="overlay" id="endnote">ادامه: پرده ۳ — جزیره</div>
+
+<div id="cards">
+  <div class="card" id="card1">
+    <img src="../hyper-helz-3d-store/products/asal.jpg" alt="عسل طبیعی">
+    <div>عسل طبیعی</div>
+  </div>
+  <div class="card" id="card2">
+    <img src="../hyper-helz-3d-store/products/nan.jpg" alt="نان پروتئینی">
+    <div>نان پروتئینی</div>
+  </div>
+  <div class="card" id="card3">
+    <img src="../hyper-helz-3d-store/products/kino.jpg" alt="کینوا">
+    <div>کینوا</div>
+  </div>
+</div>
+<div id="progress"></div>
+
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 200);
+
+const faceMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const edgeMat = new THREE.LineBasicMaterial({ color: 0x111111 });
+
+function sketchBox(w, h, d, x, y, z, mat) {
+  const g = new THREE.Group();
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat || faceMat);
+  mesh.position.set(x, y, z);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), edgeMat);
+  edges.position.copy(mesh.position);
+  g.add(mesh, edges);
+  scene.add(g);
+  return g;
+}
+
+// floor
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), faceMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.set(0, 0, 5);
+scene.add(floor);
+
+// aisle walls (stem) + bowl walls for depth
+sketchBox(0.3, 3, 16, -5, 1.5, 18);
+sketchBox(0.3, 3, 16,  5, 1.5, 18);
+sketchBox(0.3, 3, 20, -9, 1.5, 0);
+sketchBox(0.3, 3, 20,  9, 1.5, 0);
+sketchBox(18, 3, 0.3,  0, 1.5, -10);
+
+// racks (long boxes, left + right)
+sketchBox(1, 2.2, 22, -4.2, 1.1, 10);
+sketchBox(1, 2.2, 22,  4.2, 1.1, 10);
+
+// island ahead (teaser for act 3)
+sketchBox(6, 1.1, 4, 0, 0.55, -6);
+
+// products on the inner rack faces: white now, bloom into color with scroll
+const palette = [0xe8a020, 0xd9b98a, 0x8fae5a, 0xd4af37, 0xa67c52, 0x7fb069, 0xc96f2e, 0x9db38a];
+const products = [];
+for (let i = 0; i < 8; i++) {
+  const z = 19 - i * 2.5;
+  for (const side of [-1, 1]) {
+    const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.45), mat);
+    m.position.set(side * 3.6, 1.15, z);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), edgeMat);
+    edges.position.copy(m.position);
+    scene.add(m, edges);
+    products.push({ mat, target: new THREE.Color(palette[(i + (side > 0 ? 4 : 0)) % palette.length]), delay: i * 0.05 });
+  }
+}
+
+// watercolor blots on the floor, blooming along the walk
+function blotTexture(inner, outer) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128, 128, 10, 128, 128, 128);
+  g.addColorStop(0, inner);
+  g.addColorStop(1, outer);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+}
+function blot(x, z, r, tex) {
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(r * 2, r * 2),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false })
+  );
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(x, 0.06, z);
+  scene.add(m);
+  return m;
+}
+const blots = [
+  { mesh: blot(0, 17, 3, blotTexture('rgba(245,158,11,0.50)', 'rgba(245,158,11,0)')), at: 0.22 },
+  { mesh: blot(0, 8, 3.4, blotTexture('rgba(74,160,90,0.50)', 'rgba(74,160,90,0)')), at: 0.5 },
+  { mesh: blot(0, -3, 3.8, blotTexture('rgba(220,90,60,0.50)', 'rgba(220,90,60,0)')), at: 0.78 }
+];
+
+// camera path: entrance -> mid aisle -> near island
+const path = [
+  { pos: [0, 1.7, 24], look: [0, 1.6, 0] },
+  { pos: [0, 1.7, 12], look: [0, 1.6, -8] },
+  { pos: [0, 1.7, 2],  look: [0, 1.3, -8] }
+];
+const segEnds = [0.5, 1.0];
+function smooth(t) { return t * t * (3 - 2 * t); }
+function clamp01(t) { return Math.min(1, Math.max(0, t)); }
+function cameraAt(t) {
+  let i = 0;
+  while (i < segEnds.length - 1 && t > segEnds[i]) i++;
+  const t0 = i === 0 ? 0 : segEnds[i - 1];
+  const lt = smooth(clamp01((t - t0) / (segEnds[i] - t0)));
+  const a = path[i], b = path[i + 1];
+  const pos = new THREE.Vector3(...a.pos).lerp(new THREE.Vector3(...b.pos), lt);
+  const look = new THREE.Vector3(...a.look).lerp(new THREE.Vector3(...b.look), lt);
+  return { pos, look };
+}
+function rangeFade(p, a, b, c, d) {
+  return smooth(clamp01((p - a) / (b - a))) * (1 - smooth(clamp01((p - c) / (d - c))));
+}
+
+const beat1 = document.getElementById('beat1');
+const beat2 = document.getElementById('beat2');
+const beat3 = document.getElementById('beat3');
+const endEl = document.getElementById('endnote');
+const progEl = document.getElementById('progress');
+const card1 = document.getElementById('card1');
+const card2 = document.getElementById('card2');
+const card3 = document.getElementById('card3');
+
+let target = 0, current = 0;
+function scrollTarget() {
+  const max = document.body.scrollHeight - window.innerHeight;
+  return max > 0 ? clamp01(window.scrollY / max) : 0;
+}
+
+const white = new THREE.Color(0xffffff);
+function animate() {
+  requestAnimationFrame(animate);
+  target = scrollTarget();
+  current += (target - current) * 0.12;
+  if (Math.abs(target - current) < 0.0005) current = target;
+  const p = current;
+
+  const { pos, look } = cameraAt(p);
+  camera.position.copy(pos);
+  camera.lookAt(look);
+
+  // products bloom into color as you walk past them
+  for (const pr of products) {
+    const b = smooth(clamp01((p - pr.delay) / (0.9 - pr.delay)));
+    pr.mat.color.copy(white).lerp(pr.target, b);
+  }
+  // blots bloom along the walk
+  for (const bl of blots) {
+    bl.mesh.material.opacity = 0.55 * smooth(clamp01((p - bl.at) / 0.12));
+  }
+
+  // narrative beats
+  beat1.style.opacity = rangeFade(p, 0.06, 0.14, 0.28, 0.36);
+  beat2.style.opacity = rangeFade(p, 0.40, 0.48, 0.60, 0.68);
+  beat3.style.opacity = rangeFade(p, 0.72, 0.80, 0.92, 0.97);
+  endEl.style.opacity = smooth(clamp01((p - 0.94) / 0.05));
+
+  // discovery cards
+  card1.style.opacity = smooth(clamp01((p - 0.26) / 0.06));
+  card2.style.opacity = smooth(clamp01((p - 0.50) / 0.06));
+  card3.style.opacity = smooth(clamp01((p - 0.72) / 0.06));
+
+  progEl.style.width = (p * 100).toFixed(1) + '%';
+
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
