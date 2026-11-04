@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>کافه نوژه — منو</title>
+<meta name="description" content="نمونه وب‌اپ قابل نصب کافه نوژه: منو + سبد خرید. بدون فروشگاه، بدون هزینه.">
+<meta name="theme-color" content="#3b2314">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Tahoma,'Segoe UI',sans-serif;background:#f7f1e8;color:#2b1d12}
+header{background:#3b2314;color:#fff;padding:18px 16px 14px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:22px} header p{margin:6px 0 0;color:#e8d9c2;font-size:12px;line-height:1.9}
+.tabs{display:flex;gap:8px;padding:12px 16px;overflow-x:auto}
+.tabs button{border:1px solid #d8c7b0;background:#fff;color:#3b2314;border-radius:999px;padding:9px 14px;font-family:inherit;font-size:14px;white-space:nowrap;cursor:pointer}
+.tabs button.on{background:#3b2314;color:#fff}
+.list{padding:0 16px 110px;display:grid;gap:12px}
+.card{background:#fff;border:1px solid #e7dccb;border-radius:16px;padding:14px;display:flex;gap:12px;align-items:center}
+.mark{width:52px;height:52px;border-radius:14px;background:#efe3cf;color:#3b2314;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;flex:none}
+.card h3{margin:0;font-size:16px} .card p{margin:4px 0 0;color:#7a6a58;font-size:12px}
+.price{margin-top:8px;font-weight:bold;font-size:14px}
+.add{margin-inline-start:auto;background:#2e5e3a;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-family:inherit;cursor:pointer;flex:none}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e7dccb;padding:12px 16px;display:flex;gap:10px;align-items:center}
+.bar .total{font-weight:bold} .bar button{flex:1;background:#3b2314;color:#fff;border:0;border-radius:12px;padding:13px;font-family:inherit;font-size:15px;cursor:pointer}
+.bar button:disabled{opacity:.45}
+.cart{padding:0 16px 110px} .row{display:flex;justify-content:space-between;gap:10px;background:#fff;border:1px solid #e7dccb;border-radius:12px;padding:12px;margin-bottom:8px}
+.qty button{width:30px;height:30px;border-radius:9px;border:1px solid #d8c7b0;background:#fff;font-size:16px;cursor:pointer}
+.note{padding:0 16px 20px;color:#7a6a58;font-size:12px;line-height:1.9}
+.view{display:none} .view.on{display:block}
+</style>
+</head>
+<body>
+<header>
+<h1>کافه نوژه</h1>
+<p>اصفهان · نمونه‌ی وب‌اپ قابل نصب</p>
+</header>
+<div class="tabs" id="tabs"></div>
+<main>
+<section id="menuView" class="view on"><div class="list" id="list"></div></section>
+<section id="cartView" class="view"><div class="cart" id="cartBox"></div></section>
+</main>
+<div class="note" id="installNote">نصب روی گوشی: در مرورگر گوشی، از منوی مرورگر گزینه‌ی افزودن به صفحه‌ی اصلی را بزنید — همین صفحه مثل یک اپ روی گوشی می‌نشیند، بدون نیاز به فروشگاه.</div>
+<div class="bar">
+<span class="total" id="totalText">سبد خالی است</span>
+<button id="cartBtn">دیدن سبد</button>
+</div>
+<script>
+const fa=n=>Number(n).toLocaleString('fa-IR');
+const MENU=[
+{id:1,cat:'گرم',name:'اسپرسو تک',desc:'تند و صبحگاهی',price:80000,mark:'ا'},
+{id:2,cat:'گرم',name:'اسپرسو دبل',desc:'دبل، پرقدرت',price:100000,mark:'ا'},
+{id:3,cat:'گرم',name:'آمریکانو',desc:'رقیق و خوش‌عطر',price:120000,mark:'آ'},
+{id:4,cat:'گرم',name:'کورتادو',desc:'اسپرسو با شیر کم',price:130000,mark:'ک'},
+{id:5,cat:'گرم',name:'لاته',desc:'نرم و شیری',price:200000,mark:'ل'},
+{id:6,cat:'گرم',name:'موکا',desc:'قهوه و شکلات',price:220000,mark:'م'},
+{id:7,cat:'گرم',name:'کاپوچینو',desc:'کف شیر کلاسیک',price:160000,mark:'ک'},
+{id:8,cat:'گرم',name:'هات‌چاکلت',desc:'آرام عصرگاهی',price:240000,mark:'ه'},
+{id:9,cat:'سرد',name:'آفوگاتو',desc:'بستنی و اسپرسو',price:220000,mark:'آ'},
+{id:10,cat:'سرد',name:'آیس لاته',desc:'خنک و شیری',price:240000,mark:'آ'},
+{id:11,cat:'سرد',name:'آیس موکا',desc:'خنک و شکلاتی',price:260000,mark:'آ'},
+{id:12,cat:'سرد',name:'لیموناد',desc:'ترش و تازه',price:200000,mark:'ل'},
+{id:13,cat:'سرد',name:'کیک روز',desc:'همراه قهوه',price:160000,mark:'ک'},
+{id:14,cat:'سرد',name:'املت',desc:'صبحانه‌ی کامل',price:220000,mark:'ا'},
+{id:15,cat:'غذا',name:'برگر گوشت',desc:'درست‌وحسابی',price:480000,mark:'ب'},
+{id:16,cat:'غذا',name:'برگر بوقلمون',desc:'سبک‌تر',price:400000,mark:'ب'},
+{id:17,cat:'غذا',name:'ساندویچ فیله',desc:'فیله‌ی مرغ',price:460000,mark:'س'},
+{id:18,cat:'غذا',name:'سینی فیله',desc:'سینی کامل',price:400000,mark:'س'},
+{id:19,cat:'غذا',name:'ساندویچ مارشال',desc:'سه تکه',price:680000,mark:'س'}
+];
+const cats=['همه','گرم','سرد','غذا'];
+let cat='همه'; const cart={};
+const tabsEl=document.getElementById('tabs'), listEl=document.getElementById('list');
+function renderTabs(){
+  tabsEl.innerHTML=cats.map(c=>`<button class="${c===cat?'on':''}" data-c="${c}">${c==='همه'?'همه':c==='گرم'?'نوشیدنی گرم':c==='سرد'?'سرد، دسر و صبحانه':'غذا'}</button>`).join('');
+  tabsEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{cat=b.dataset.c;renderTabs();renderList();});
+}
+function renderList(){
+  const items=MENU.filter(m=>cat==='همه'||m.cat===cat);
+  listEl.innerHTML=items.map(m=>`<div class="card"><div class="mark">${m.mark}</div><div style="flex:1"><h3>${m.name}</h3><p>${m.desc}</p><div class="price">${fa(m.price)} تومان</div></div><button class="add" data-id="${m.id}">افزودن</button></div>`).join('');
+  listEl.querySelectorAll('.add').forEach(b=>b.onclick=()=>{cart[b.dataset.id]=(cart[b.dataset.id]||0)+1;renderBar();});
+}
+function total(){return MENU.reduce((s,m)=>s+(cart[m.id]||0)*m.price,0)}
+function count(){return Object.values(cart).reduce((a,b)=>a+b,0)}
+function renderBar(){
+  const c=count();
+  document.getElementById('totalText').textContent=c?`${fa(c)} قلم · ${fa(total())} تومان`:'سبد خالی است';
+  document.getElementById('cartBtn').disabled=!c;
+}
+function renderCart(){
+  const box=document.getElementById('cartBox');
+  const lines=MENU.filter(m=>cart[m.id]);
+  if(!lines.length){box.innerHTML='<p>هنوز چیزی به سبد اضافه نکرده‌اید.</p>';return;}
+  box.innerHTML=lines.map(m=>`<div class="row"><div><b>${m.name}</b><div style="color:#7a6a58;font-size:13px;margin-top:4px">${fa(m.price)} تومان</div></div><div class="qty"><button data-d="-1" data-id="${m.id}">−</button> <b>${fa(cart[m.id])}</b> <button data-d="1" data-id="${m.id}">+</button></div></div>`).join('')+`<div class="row"><b>جمع</b><b>${fa(total())} تومان</b></div><p style="color:#7a6a58;font-size:13px;line-height:1.9">این نمونه‌ی نمایشی است؛ سفارش واقعی هنوز به کافه وصل نیست. در نسخه‌ی واقعی همین دکمه، سفارش را برای کافه می‌فرستد.</p>`;
+  box.querySelectorAll('.qty button').forEach(b=>b.onclick=()=>{const id=b.dataset.id;cart[id]=(cart[id]||0)+Number(b.dataset.d);if(cart[id]<=0)delete cart[id];renderCart();renderBar();});
+}
+let showingCart=false;
+document.getElementById('cartBtn').onclick=()=>{
+  showingCart=!showingCart;
+  document.getElementById('menuView').classList.toggle('on',!showingCart);
+  document.getElementById('cartView').classList.toggle('on',showingCart);
+  document.getElementById('cartBtn').textContent=showingCart?'بازگشت به منو':'دیدن سبد';
+  if(showingCart)renderCart();
+};
+renderTabs();renderList();renderBar();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+</script>
+</body>
+</html>
