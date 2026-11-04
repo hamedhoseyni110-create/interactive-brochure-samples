@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>هایپرهلس | پرده ۲: گشتن در راهرو</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./three.module.min.js"
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --bg-paper: #faf7f0;
+      --ink-dark: #1f2421;
+      --ink-muted: #5a635d;
+      --sage: #8da98c;
+      --amber: #e2a547;
+      --mint: #6bc4a6;
+      --coral: #e5826e;
+      --glass-bg: rgba(250, 247, 240, 0.86);
+      --glass-border: rgba(31, 36, 33, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      background-color: var(--bg-paper);
+      color: var(--ink-dark);
+      font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+      overflow-x: hidden;
+      scroll-behavior: auto;
+    }
+
+    /* ارتفاع اسکرول برای تجربه‌ی قدم زدن */
+    .scroll-track {
+      height: 750vh;
+      width: 100%;
+      position: relative;
+    }
+
+    /* بوم سه‌بعدی ثابت */
+    #webgl-container {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* لایه هاله‌ی آبرنگی روی کل صحنه */
+    #watercolor-wash {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease-out;
+      mix-blend-mode: multiply;
+    }
+
+    /* رابط کاربری ثابت */
+    .hud-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.25rem;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .brand-badge {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink-dark);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--sage);
+      transition: background 0.4s ease;
+    }
+
+    .cart-pill {
+      pointer-events: auto;
+      background: var(--ink-dark);
+      color: var(--bg-paper);
+      padding: 0.55rem 1rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 8px 20px rgba(31, 36, 33, 0.18);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .cart-pill.bump {
+      transform: scale(1.16);
+    }
+
+    .cart-count {
+      background: var(--amber);
+      color: var(--ink-dark);
+      min-width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0 4px;
+    }
+
+    /* نوار پیشرفت فصل */
+    .progress-bar-wrap {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 4px;
+      background: rgba(31, 36, 33, 0.06);
+      z-index: 25;
+    }
+
+    #scroll-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--sage), var(--amber), var(--mint), var(--coral));
+      transition: width 0.08s linear;
+    }
+
+    /* باکس‌های روایت متنی */
+    .narrative-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+
+    .narrative-card {
+      position: absolute;
+      max-width: 390px;
+      width: calc(100% - 2.5rem);
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.2rem 1.4rem;
+      box-shadow: 0 14px 34px rgba(31, 36, 33, 0.07);
+      opacity: 0;
+      transform: translateY(18px);
+      filter: blur(6px);
+      transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.45s ease;
+    }
+
+    .narrative-card.active {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0px);
+    }
+
+    .narrative-card.pos-top {
+      top: 5.2rem;
+    }
+
+    .narrative-card.pos-right {
+      top: 5.5rem;
+      right: 1.25rem;
+    }
+
+    .narrative-card.pos-left {
+      top: 5.5rem;
+      left: 1.25rem;
+    }
+
+    .narrative-card.pos-bottom {
+      bottom: 6.2rem;
+      text-align: center;
+    }
+
+    .narrative-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--ink-dark);
+      margin-bottom: 0.4rem;
+      line-height: 1.5;
+    }
+
+    .narrative-sub {
+      font-size: 0.88rem;
+      color: var(--ink-muted);
+      line-height: 1.75;
+      font-weight: 400;
+    }
+
+    /* هات‌اسپات و کارت‌های کشف محصول */
+    #hotspots-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 12;
+      pointer-events: none;
+    }
+
+    .hotspot-anchor {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .hotspot-anchor.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* حلقه تپنده ظریف */
+    .hotspot-ring {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid var(--ink-dark);
+      background: rgba(250, 247, 240, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.3s ease, background 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .hotspot-ring::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      opacity: 0.55;
+      animation: pulseRing 2.2s infinite ease-out;
+    }
+
+    .hotspot-core {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--ink-dark);
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.85); opacity: 0.7; }
+      100% { transform: scale(1.45); opacity: 0; }
+    }
+
+    /* کارت کشف محصول */
+    .discovery-card {
+      position: absolute;
+      bottom: 48px;
+      right: -120px;
+      width: 250px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 0.75rem;
+      box-shadow: 0 16px 36px rgba(31, 36, 33, 0.14);
+      opacity: 0;
+      transform: translateY(12px) scale(0.94);
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+    }
+
+    .hotspot-anchor.focused .discovery-card {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    /* هاله آبرنگی داخل کارت */
+    .card-watercolor-aura {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      top: -40px;
+      left: -40px;
+      filter: blur(26px);
+      opacity: 0.45;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .product-thumb-wrap {
+      width: 100%;
+      height: 118px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #efeae0;
+      margin-bottom: 0.6rem;
+      border: 1px solid rgba(31, 36, 33, 0.08);
+      position: relative;
+    }
+
+    .product-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .hotspot-anchor.focused .product-thumb {
+      transform: scale(1.05);
+    }
+
+    .feature-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(31, 36, 33, 0.08);
+      color: var(--ink-dark);
+      margin-bottom: 0.35rem;
+    }
+
+    .product-name {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--ink-dark);
+      margin-bottom: 0.25rem;
+    }
+
+    .product-desc {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      line-height: 1.55;
+      margin-bottom: 0.65rem;
+    }
+
+    .add-tour-btn {
+      width: 100%;
+      border: none;
+      background: var(--ink-dark);
+      color: var(--bg-paper);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: background 0.25s ease, transform 0.15s ease;
+    }
+
+    .add-tour-btn:active {
+      transform: scale(0.97);
+    }
+
+    .add-tour-btn.added {
+      background: #3b6e52;
+    }
+
+    /* دکمه انتهای فصل: ادامه به پرده ۳ */
+    .next-chapter-banner {
+      position: fixed;
+      bottom: 1.6rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(25px);
+      z-index: 15;
+      background: var(--ink-dark);
+      color: var(--bg-paper);
+      padding: 0.85rem 1.6rem;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      box-shadow: 0 14px 30px rgba(31, 36, 33, 0.24);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      white-space: nowrap;
+    }
+
+    .next-chapter-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    /* راهنمای اسکرول پایین صفحه */
+    .scroll-hint {
+      align-self: center;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      transition: opacity 0.3s ease;
+    }
+
+    /* ذره‌ی پرنده به سمت سبد */
+    .flying-token {
+      position: fixed;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--amber);
+      border: 2px solid var(--ink-dark);
+      z-index: 99;
+      pointer-events: none;
+      transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.65s ease;
+    }
+
+    @media (max-width: 600px) {
+      .discovery-card {
+        width: 225px;
+        right: -95px;
+      }
+      .narrative-card.pos-right,
+      .narrative-card.pos-left {
+        left: 1.25rem;
+        right: 1.25rem;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- نوار پیشرفت اسکرول -->
+  <div class="progress-bar-wrap">
+    <div id="scroll-progress-fill"></div>
+  </div>
+
+  <!-- بوم سه‌بعدی -->
+  <div id="webgl-container"></div>
+
+  <!-- لایه موج آبرنگی -->
+  <div id="watercolor-wash"></div>
+
+  <!-- هدر و وضعیت سبد گردش -->
+  <div class="hud-layer">
+    <div class="top-bar">
+      <div class="brand-badge">
+        <span class="brand-dot" id="mood-dot"></span>
+        <span>هایپرهلس | پرده ۲: گشتن</span>
+      </div>
+      <div class="cart-pill" id="cart-target">
+        <span>سبد گردش</span>
+        <span class="cart-count" id="cart-counter">۰</span>
+      </div>
+    </div>
+    <div class="scroll-hint" id="scroll-hint-box">برای قدم زدن در راهرو اسکرول کنید ↓</div>
+  </div>
+
+  <!-- چهار متن روایی دقیق در بازه‌های مشخص‌شده -->
+  <div class="narrative-stage">
+    <!-- ۰ تا ۲۰ درصد -->
+    <div class="narrative-card pos-top" id="nar-1">
+      <div class="narrative-title">قدم اول: آرامشِ انتخاب</div>
+      <div class="narrative-sub">اینجا عجله‌ای در کار نیست؛ هر قفسه به وقتِ خودش دیده می‌شود.</div>
+    </div>
+
+    <!-- ۲۵ تا ۵۰ درصد -->
+    <div class="narrative-card pos-right" id="nar-2">
+      <div class="narrative-title">طبیعت، دست‌نخورده روی رگال</div>
+      <div class="narrative-sub">بدون برچسب‌های گیج‌کننده؛ فقط ترکیباتی که نامشان را می‌شناسید.</div>
+    </div>
+
+    <!-- ۵۵ تا ۸۰ درصد -->
+    <div class="narrative-card pos-left" id="nar-3">
+      <div class="narrative-title">رنگ‌هایی که واقعی‌اند</div>
+      <div class="narrative-sub">طعم‌هایی که از دل طبیعت به سبد امروزتان راه پیدا می‌کنند.</div>
+    </div>
+
+    <!-- ۸۵ تا ۱۰۰ درصد -->
+    <div class="narrative-card pos-bottom" id="nar-4">
+      <div class="narrative-title">بوی تازگی از سمت جزیره می‌آید...</div>
+    </div>
+  </div>
+
+  <!-- لایه هات‌اسپات‌ها و کارت‌های کشف ۳ محصول شاخص -->
+  <div id="hotspots-layer"></div>
+
+  <!-- نشانگر پایان پرده ۲ و ورود به پرده ۳ -->
+  <div class="next-chapter-banner" id="island-cta">
+    ادامه: پرده ۳ — جزیره
+  </div>
+
+  <!-- مسیر اسکرول -->
+  <div class="scroll-track"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+
+    // --- داده‌های دقیق ۳ محصول شاخص (بدون قیمت، بدون ادعای اضافه) ---
+    const FEATURED_PRODUCTS = [
+      {
+        id: 'asal',
+        name: 'عسل طبیعی',
+        tag: 'خالص و طبیعی',
+        desc: 'شهد طلایی و زلال طبیعت؛ برداشت‌شده با حفظ عطر گل‌های صحرایی.',
+        img: '../hyper-helz-3d-store/products/asal.jpg',
+        scrollPoint: 0.30, // در بازه چرخش نگاه به چپ
+        pos: new THREE.Vector3(-2.15, 1.45, -13.5),
+        side: 'left',
+        auraColor: '#e2a547',
+        meshColor: 0xe2a547
+      },
+      {
+        id: 'kino',
+        name: 'کینوا',
+        tag: 'دانه کامل گیاهی',
+        desc: 'دانه‌های سبک و مغذی برای یک وعده‌ی سالم و پرانرژی در طول روز.',
+        img: '../hyper-helz-3d-store/products/kino.jpg',
+        scrollPoint: 0.46, // در ادامه رگال ارگانیک چپ
+        pos: new THREE.Vector3(-2.15, 1.85, -21.5),
+        side: 'left',
+        auraColor: '#8da98c',
+        meshColor: 0x8da98c
+      },
+      {
+        id: 'nan',
+        name: 'نان پروتئینی',
+        tag: 'پخت تازه روز',
+        desc: 'بافت نرم و مغذی؛ پخته‌شده برای همراهی با صبحانه و وعده‌های سالم.',
+        img: '../hyper-helz-3d-store/products/nan.jpg',
+        scrollPoint: 0.68, // در بازه چرخش نگاه به راست
+        pos: new THREE.Vector3(2.15, 1.55, -31.5),
+        side: 'right',
+        auraColor: '#e5826e',
+        meshColor: 0xe5826e
+      }
+    ];
+
+    // --- ساخت المان‌های DOM برای هات‌اسپات‌ها و کارت‌ها ---
+    const hotspotsLayer = document.getElementById('hotspots-layer');
+    const cartCounterEl = document.getElementById('cart-counter');
+    const cartTargetEl = document.getElementById('cart-target');
+    let cartCount = 0;
+
+    const toPersianDigits = (n) => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+    FEATURED_PRODUCTS.forEach((prod) => {
+      const anchor = document.createElement('div');
+      anchor.className = 'hotspot-anchor';
+      anchor.id = `hs-${prod.id}`;
+      anchor.style.color = prod.auraColor;
+
+      anchor.innerHTML = `
+        <div class="discovery-card" id="card-${prod.id}">
+          <div class="card-watercolor-aura" style="background:${prod.auraColor}"></div>
+          <div class="card-inner">
+            <div class="product-thumb-wrap">
+              <img class="product-thumb" src="${prod.img}" alt="${prod.name}" />
+            </div>
+            <div class="feature-tag">✦ ${prod.tag}</div>
+            <div class="product-name">${prod.name}</div>
+            <div class="product-desc">${prod.desc}</div>
+            <button class="add-tour-btn" data-id="${prod.id}">
+              <span>+ افزودن به سبد گردش</span>
+            </button>
+          </div>
+        </div>
+        <div class="hotspot-ring" title="${prod.name}">
+          <div class="hotspot-core"></div>
+        </div>
+      `;
+
+      // فال‌بک تصویر در صورتی که فایل در مسیر نسبی هنوز قرار نگرفته باشد تا ظاهر کارت خراب نشود
+      const imgEl = anchor.querySelector('img');
+      imgEl.addEventListener('error', () => {
+        imgEl.style.display = 'none';
+        imgEl.parentElement.style.background = `radial-gradient(circle at 30% 30%, ${prod.auraColor}, #efeae0)`;
+      });
+
+      // باز و بسته شدن دستی با کلیک روی حلقه
+      const ringEl = anchor.querySelector('.hotspot-ring');
+      ringEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        anchor.classList.toggle('focused');
+      });
+
+      // دکمه افزودن به سبد گردش + انیمیشن پرواز
+      const btn = anchor.querySelector('.add-tour-btn');
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        flyToCart(e.currentTarget, prod.auraColor);
+        btn.classList.add('added');
+        btn.innerHTML = '<span>✓ به سبد گردش اضافه شد</span>';
+        setTimeout(() => {
+          btn.classList.remove('added');
+          btn.innerHTML = '<span>+ افزودن به سبد گردش</span>';
+        }, 1800);
+      });
+
+      hotspotsLayer.appendChild(anchor);
+      prod.domAnchor = anchor;
+    });
+
+    function flyToCart(buttonEl, colorHex) {
+      const startRect = buttonEl.getBoundingClientRect();
+      const targetRect = cartTargetEl.getBoundingClientRect();
+
+      const token = document.createElement('div');
+      token.className = 'flying-token';
+      token.style.background = colorHex;
+      token.style.left = `${startRect.left + startRect.width / 2 - 9}px`;
+      token.style.top = `${startRect.top + startRect.height / 2 - 9}px`;
+      document.body.appendChild(token);
+
+      requestAnimationFrame(() => {
+        const dx = (targetRect.left + targetRect.width / 2) - (startRect.left + startRect.width / 2);
+        const dy = (targetRect.top + targetRect.height / 2) - (startRect.top + startRect.height / 2);
+        token.style.transform = `translate(${dx}px, ${dy}px) scale(0.35)`;
+        token.style.opacity = '0.2';
+      });
+
+      setTimeout(() => {
+        token.remove();
+        cartCount++;
+        cartCounterEl.textContent = toPersianDigits(cartCount);
+        cartTargetEl.classList.remove('bump');
+        void cartTargetEl.offsetWidth;
+        cartTargetEl.classList.add('bump');
+      }, 650);
+    }
+
+    // --- راه‌اندازی صحنه Three.js ---
+    const container = document.getElementById('webgl-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xfaf7f0);
+    scene.fog = new THREE.FogExp2(0xfaf7f0, 0.022);
+
+    const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(0, 1.65, 2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    // نورپردازی گرم فروشگاهی
+    const ambientLight = new THREE.AmbientLight(0xfffcf5, 0.85);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffe8c2, 0.9);
+    dirLight.position.set(4, 10, 6);
+    scene.add(dirLight);
+
+    // خط‌قلم معماری (Line-Art Material)
+    const inkLineMat = new THREE.LineBasicMaterial({
+      color: 0x2c332e,
+      transparent: true,
+      opacity: 0.42
+    });
+
+    function addArchitecturalEdges(mesh, opacity = 0.45) {
+      const edges = new THREE.EdgesGeometry(mesh.geometry);
+      const lineMat = inkLineMat.clone();
+      lineMat.opacity = opacity;
+      const line = new THREE.LineSegments(edges, lineMat);
+      mesh.add(line);
+      return line;
+    }
+
+    // کف راهرو با خطوط کاغذی/معماری
+    const floorGeo = new THREE.PlaneGeometry(12, 65, 12, 40);
+    const floorMat = new THREE.MeshLambertMaterial({ color: 0xf4efe4 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.set(0, 0, -25);
+    scene.add(floor);
+
+    const gridHelper = new THREE.GridHelper(65, 45, 0xc8c2b4, 0xe2dcd0);
+    gridHelper.position.set(0, 0.01, -25);
+    scene.add(gridHelper);
+
+    // ساخت رگال‌های چپ و راست و محصولات روی قفسه‌ها
+    const aisleItems = [];
+    const totalBays = 10;
+
+    // پالت‌های آبرنگی: نیمه اول (سبز مریم‌گلی و کهربایی) -> نیمه دوم (سبز نعنایی و مرجانی)
+    const earlyPalette = [0x8da98c, 0xe2a547, 0xc89d66, 0x9eb89d];
+    const latePalette  = [0x6bc4a6, 0xe5826e, 0x78c2ad, 0xe89984];
+
+    for (let i = 0; i < totalBays; i++) {
+      const zPos = -4 - i * 4.2;
+      const isLateAisle = i >= 5;
+      const palette = isLateAisle ? latePalette : earlyPalette;
+
+      [-1, 1].forEach((sideDir) => {
+        const xBase = sideDir * 2.55;
+
+        // ستون و بدنه رگال
+        const rackGeo = new THREE.BoxGeometry(0.75, 2.8, 3.4);
+        const rackMat = new THREE.MeshLambertMaterial({
+          color: 0xfaf7f0,
+          transparent: true,
+          opacity: 0.95
+        });
+        const rack = new THREE.Mesh(rackGeo, rackMat);
+        rack.position.set(xBase, 1.4, zPos);
+        addArchitecturalEdges(rack, 0.35);
+        scene.add(rack);
+
+        aisleItems.push({
+          mesh: rack,
+          z: zPos,
+          baseColor: new THREE.Color(0xfaf7f0),
+          targetColor: new THREE.Color(sideDir === -1 ? 0xebe1cf : 0xe4efe9)
+        });
+
+        // ۳ طبقه روی هر رگال
+        [0.65, 1.35, 2.05].forEach((shelfY, sIdx) => {
+          const shelfGeo = new THREE.BoxGeometry(0.84, 0.06, 3.45);
+          const shelfMat = new THREE.MeshLambertMaterial({ color: 0xf7f3ea });
+          const shelf = new THREE.Mesh(shelfGeo, shelfMat);
+          shelf.position.set(xBase - sideDir * 0.06, shelfY, zPos);
+          addArchitecturalEdges(shelf, 0.5);
+          scene.add(shelf);
+
+          // چیدن محصولات کوچک روی طبقات (ابتدا سفید و اسکچی، با اسکرول رنگ‌آمیزی می‌شوند)
+          for (let p = -1; p <= 1; p++) {
+            const prodGeo = (sIdx + p) % 2 === 0
+              ? new THREE.CylinderGeometry(0.16, 0.16, 0.42, 12)
+              : new THREE.BoxGeometry(0.32, 0.44, 0.28);
+
+            const prodMat = new THREE.MeshLambertMaterial({ color: 0xfaf7f0 });
+            const prodMesh = new THREE.Mesh(prodGeo, prodMat);
+            prodMesh.position.set(
+              xBase - sideDir * 0.22,
+              shelfY + 0.25,
+              zPos + p * 0.95
+            );
+            addArchitecturalEdges(prodMesh, 0.65);
+            scene.add(prodMesh);
+
+            const targetHex = palette[(i + sIdx + p + 2) % palette.length];
+            aisleItems.push({
+              mesh: prodMesh,
+              z: zPos + p * 0.95,
+              baseColor: new THREE.Color(0xfaf7f0),
+              targetColor: new THREE.Color(targetHex)
+            });
+          }
+        });
+      });
+    }
+
+    // --- ساخت مش‌های ویژه برای ۳ محصول شاخص با قابلیت لیفت پارالاکس و هاله آبرنگی ---
+    const textureLoader = new THREE.TextureLoader();
+
+    FEATURED_PRODUCTS.forEach((prod) => {
+      const group = new THREE.Group();
+      group.position.copy(prod.pos);
+
+      // هاله آبرنگی پشت محصول در فضای سه‌بعدی
+      const auraGeo = new THREE.CircleGeometry(0.62, 24);
+      const auraMat = new THREE.MeshBasicMaterial({
+        color: prod.meshColor,
+        transparent: true,
+        opacity: 0.0,
+        side: THREE.DoubleSide
+      });
+      const auraMesh = new THREE.Mesh(auraGeo, auraMat);
+      auraMesh.rotation.y = prod.side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+      auraMesh.position.x = prod.side === 'left' ? -0.15 : 0.15;
+      group.add(auraMesh);
+
+      // حجم خود محصول شاخص
+      const boxGeo = new THREE.BoxGeometry(0.46, 0.62, 0.46);
+      const boxMat = new THREE.MeshLambertMaterial({ color: 0xfaf7f0 });
+
+      // تلاش برای بارگذاری عکس واقعی محصول روی بدنه سه‌بعدی
+      textureLoader.load(
+        prod.img,
+        (tex) => {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          boxMat.map = tex;
+          boxMat.needsUpdate = true;
+        },
+        undefined,
+        () => {} // در صورت نبودن فایل، با رنگ آبرنگی نمایش داده می‌شود
+      );
+
+      const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+      addArchitecturalEdges(boxMesh, 0.85);
+      group.add(boxMesh);
+
+      scene.add(group);
+      prod.group3D = group;
+      prod.boxMat = boxMat;
+      prod.auraMat = auraMat;
+      prod.baseColor = new THREE.Color(0xfaf7f0);
+      prod.targetColor = new THREE.Color(prod.meshColor);
+    });
+
+    // --- ساخت «جزیره» در انتهای راهرو (پرده ۳) ---
+    const islandGroup = new THREE.Group();
+    islandGroup.position.set(0, 0, -49);
+
+    const counterGeo = new THREE.CylinderGeometry(3.4, 3.6, 1.15, 32);
+    const counterMat = new THREE.MeshLambertMaterial({ color: 0xfaf7f0 });
+    const counterMesh = new THREE.Mesh(counterGeo, counterMat);
+    counterMesh.position.y = 0.58;
+    addArchitecturalEdges(counterMesh, 0.6);
+    islandGroup.add(counterMesh);
+
+    const canopyGeo = new THREE.CylinderGeometry(3.8, 3.8, 0.25, 32);
+    const canopyMat = new THREE.MeshLambertMaterial({ color: 0xfaf7f0 });
+    const canopyMesh = new THREE.Mesh(canopyGeo, canopyMat);
+    canopyMesh.position.y = 3.2;
+    addArchitecturalEdges(canopyMesh, 0.55);
+    islandGroup.add(canopyMesh);
+
+    // تاج گیاهی/سبز بالای جزیره
+    const foliageGeo = new THREE.SphereGeometry(1.35, 16, 12);
+    const foliageMat = new THREE.MeshLambertMaterial({ color: 0xfaf7f0 });
+    const foliageMesh = new THREE.Mesh(foliageGeo, foliageMat);
+    foliageMesh.position.y = 1.85;
+    foliageMesh.scale.set(1.2, 0.7, 1.2);
+    addArchitecturalEdges(foliageMesh, 0.45);
+    islandGroup.add(foliageMesh);
+
+    scene.add(islandGroup);
+
+    aisleItems.push(
+      { mesh: counterMesh, z: -49, baseColor: new THREE.Color(0xfaf7f0), targetColor: new THREE.Color(0xe6dec8) },
+      { mesh: canopyMesh, z: -49, baseColor: new THREE.Color(0xfaf7f0), targetColor: new THREE.Color(0xe2a547) },
+      { mesh: foliageMesh, z: -49, baseColor: new THREE.Color(0xfaf7f0), targetColor: new THREE.Color(0x6bc4a6) }
+    );
+
+    // --- تابع مکث مغناطیسی (Magnetic Damping در ۳ نقطه شاخص) ---
+    function applyMagneticCurve(rawU) {
+      // ایجاد یک پله‌ی ملایم (Plateau) حول نقاط 0.30، 0.46 و 0.68 تا حرکت دوربین با اسکرول در آن نقاط سنگین‌تر و کندتر شود
+      let u = rawU;
+      const magnetPoints = [0.30, 0.46, 0.68];
+      const radius = 0.075;
+      const strength = 0.032;
+
+      magnetPoints.forEach((mp) => {
+        const diff = rawU - mp;
+        if (Math.abs(diff) < radius) {
+          u -= strength * Math.sin((diff / radius) * (Math.PI / 2));
+        }
+      });
+      return THREE.MathUtils.clamp(u, 0, 1);
+    }
+
+    // --- مدیریت اسکرول و به‌روزرسانی روایت، موج آبرنگ و دوربین ---
+    let rawScrollProgress = 0;
+    let smoothProgress = 0;
+
+    const progressFillEl = document.getElementById('scroll-progress-fill');
+    const watercolorWashEl = document.getElementById('watercolor-wash');
+    const moodDotEl = document.getElementById('mood-dot');
+    const scrollHintEl = document.getElementById('scroll-hint-box');
+    const islandCtaEl = document.getElementById('island-cta');
+
+    const nar1 = document.getElementById('nar-1');
+    const nar2 = document.getElementById('nar-2');
+    const nar3 = document.getElementById('nar-3');
+    const nar4 = document.getElementById('nar-4');
+
+    function updateScrollRaw() {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      rawScrollProgress = maxScroll > 0 ? THREE.MathUtils.clamp(window.scrollY / maxScroll, 0, 1) : 0;
+    }
+
+    window.addEventListener('scroll', updateScrollRaw, { passive: true });
+    updateScrollRaw();
+
+    function updateUIAndNarrative(pct) {
+      progressFillEl.style.width = `${(pct * 100).toFixed(1)}%`;
+      scrollHintEl.style.opacity = pct > 0.06 ? '0' : '1';
+
+      // چهار متن روایی دقیق در بازه‌های خواسته‌شده:
+      // ۰ تا ۲۰ درصد
+      nar1.classList.toggle('active', pct >= 0.0 && pct <= 0.20);
+      // ۲۵ تا ۵۰ درصد
+      nar2.classList.toggle('active', pct >= 0.25 && pct <= 0.50);
+      // ۵۵ تا ۸۰ درصد
+      nar3.classList.toggle('active', pct >= 0.55 && pct <= 0.80);
+      // ۸۵ تا ۱۰۰ درصد
+      nar4.classList.toggle('active', pct >= 0.85 && pct <= 1.0);
+
+      // دکمه ادامه: پرده ۳ — جزیره در انتهای مسیر
+      islandCtaEl.classList.toggle('show', pct >= 0.88);
+
+      // موج آبرنگی: از سبز مریم‌گلی و کهربایی (۲۰ تا ۵۵٪) به سبز نعنایی و مرجانی (۵۵ تا ۹۵٪)
+      if (pct < 0.12) {
+        watercolorWashEl.style.opacity = (pct / 0.12 * 0.22).toFixed(2);
+        watercolorWashEl.style.background =
+          'radial-gradient(circle at 30% 45%, rgba(141,169,140,0.35), rgba(226,165,71,0.22) 60%, transparent 85%)';
+        moodDotEl.style.background = 'var(--sage)';
+      } else if (pct <= 0.52) {
+        watercolorWashEl.style.opacity = '0.28';
+        watercolorWashEl.style.background =
+          'radial-gradient(circle at 25% 50%, rgba(141,169,140,0.42), rgba(226,165,71,0.32) 55%, transparent 85%)';
+        moodDotEl.style.background = 'var(--amber)';
+      } else {
+        watercolorWashEl.style.opacity = '0.30';
+        watercolorWashEl.style.background =
+          'radial-gradient(circle at 75% 50%, rgba(107,196,166,0.40), rgba(229,130,110,0.32) 55%, transparent 85%)';
+        moodDotEl.style.background = 'var(--mint)';
+      }
+    }
+
+    // --- حلقه اصلی رندر ---
+    const tempProjected = new THREE.Vector3();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // نرم‌سازی حرکت اسکرول
+      smoothProgress += (rawScrollProgress - smoothProgress) * 0.09;
+
+      // اعمال مکث مغناطیسی در ۳ نقطه شاخص
+      const effectiveU = applyMagneticCurve(smoothProgress);
+
+      // موقعیت دوربین در طول راهرو (از ورودی Z=2 تا نزدیک جزیره Z=-41.5)
+      const camZ = THREE.MathUtils.lerp(2.0, -41.5, effectiveU);
+
+      // چرخش ملایم نگاه و انحنای مسیر:
+      // اول به چپ (قفسه‌های ارگانیک در ۲۵ تا ۵۰٪) بعد به راست (محصولات تازه در ۵۵ تا ۸۰٪) و در پایان صاف به سمت جزیره
+      let lookYaw = 0;
+      let swayX = 0;
+
+      if (effectiveU >= 0.18 && effectiveU <= 0.52) {
+        const w = Math.sin(((effectiveU - 0.18) / 0.34) * Math.PI);
+        lookYaw = 0.28 * w;  // چرخش نگاه به سمت چپ (+Y rotation)
+        swayX = -0.35 * w;
+      } else if (effectiveU > 0.52 && effectiveU <= 0.84) {
+        const w = Math.sin(((effectiveU - 0.52) / 0.32) * Math.PI);
+        lookYaw = -0.28 * w; // چرخش نگاه به سمت راست (-Y rotation)
+        swayX = 0.35 * w;
+      }
+
+      camera.position.set(swayX, 1.65, camZ);
+
+      const lookTarget = new THREE.Vector3(
+        swayX - Math.sin(lookYaw) * 8.0,
+        1.58,
+        camZ - Math.cos(lookYaw) * 8.0
+      );
+      camera.lookAt(lookTarget);
+
+      // موج آبرنگی سه‌بعدی: با جلو رفتن دوربین، قفسه‌ها و محصولات از سفیدِ اسکچی به رنگ آبرنگی تبدیل می‌شوند
+      const waveFrontZ = camZ - 11.5;
+      aisleItems.forEach((item) => {
+        const distToWave = item.z - waveFrontZ;
+        const colorProgress = THREE.MathUtils.clamp((distToWave + 6.0) / 10.0, 0, 1);
+        item.mesh.material.color.lerpColors(item.baseColor, item.targetColor, colorProgress);
+      });
+
+      // بروزرسانی ۳ محصول شاخص، لیفت پارالاکس، هاله آبرنگی و موقعیت هات‌اسپات‌های دوبعدی
+      FEATURED_PRODUCTS.forEach((prod) => {
+        const scrollDist = Math.abs(smoothProgress - prod.scrollPoint);
+        const isNear = scrollDist < 0.095;
+        const proximityFactor = THREE.MathUtils.clamp(1 - scrollDist / 0.12, 0, 1);
+
+        // لیفت پارالاکس (جدا شدن ظریف از قفسه به سمت راهرو و بالا)
+        const liftOffset = proximityFactor * 0.34;
+        const targetX = prod.pos.x + (prod.side === 'left' ? liftOffset : -liftOffset);
+        const targetY = prod.pos.y + proximityFactor * 0.12;
+
+        prod.group3D.position.x += (targetX - prod.group3D.position.x) * 0.12;
+        prod.group3D.position.y += (targetY - prod.group3D.position.y) * 0.12;
+        prod.group3D.rotation.y = proximityFactor * (prod.side === 'left' ? 0.35 : -0.35);
+
+        // رنگ گرفتن محصول و باز شدن هاله آبرنگی پشت آن
+        prod.boxMat.color.lerpColors(prod.baseColor, prod.targetColor, proximityFactor);
+        prod.auraMat.opacity = proximityFactor * 0.65;
+        const auraScale = 0.8 + proximityFactor * 0.55;
+        prod.group3D.children[0].scale.set(auraScale, auraScale, 1);
+
+        // تبدیل مختصات سه‌بعدی محصول به صفحه دوبعدی برای قرارگیری دقیق هات‌اسپات و کارت کشف
+        tempProjected.copy(prod.group3D.position);
+        tempProjected.project(camera);
+
+        const inFrontOfCamera = tempProjected.z > 0 && tempProjected.z < 1;
+        const zDistance = camera.position.z - prod.pos.z;
+
+        if (inFrontOfCamera && zDistance > 1.2 && zDistance < 19.0) {
+          const screenX = (tempProjected.x * 0.5 + 0.5) * window.innerWidth;
+          const screenY = (-(tempProjected.y * 0.5) + 0.5) * window.innerHeight;
+
+          prod.domAnchor.style.transform = `translate3d(${screenX.toFixed(1)}px, ${screenY.toFixed(1)}px, 0) translate(-50%, -50%)`;
+          // keep the discovery card inside the viewport even when its product sits near/off the screen edge
+          const cardEl = prod.domAnchor.querySelector('.discovery-card');
+          const cardW = cardEl.offsetWidth || 225;
+          const anchorLeft = screenX - 18; // anchor box is 36px wide, centered on the point
+          let cardLeft = cardEl.getBoundingClientRect().left; // true current position, either breakpoint
+          cardLeft = Math.max(8, Math.min(window.innerWidth - cardW - 8, cardLeft));
+          cardEl.style.left = (cardLeft - anchorLeft) + 'px';
+          cardEl.style.right = 'auto';
+          prod.domAnchor.classList.add('visible');
+
+          // باز شدن خودکار کارت کشف در محدوده مکث مغناطیسی هر محصول
+          if (isNear) {
+            prod.domAnchor.classList.add('focused');
+          } else {
+            prod.domAnchor.classList.remove('focused');
+          }
+        } else {
+          prod.domAnchor.classList.remove('visible', 'focused');
+        }
+      });
+
+      updateUIAndNarrative(smoothProgress);
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // واکنش‌گرایی به تغییر ابعاد صفحه (موبایل و دسکتاپ)
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
