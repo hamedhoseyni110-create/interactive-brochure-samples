@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>هایپرهلس — داستان خرید، پرده ۲</title>
+<style>
+  :root {
+    --paper: #f7f1e3;
+    --ink: #2f2a22;
+    --sage: #8fae8b;
+    --amber: #e0a35e;
+    --mint: #7fc8a9;
+    --coral: #e07a5f;
+    --panel: #fffcf5;
+    --card: #fffdf7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; }
+  body {
+    font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    direction: rtl;
+    overflow-x: hidden;
+  }
+  #scene {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 0;
+  }
+  .paper-grain {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.16;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  }
+  .wash {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse at 18% 8%, rgba(168, 204, 162, 0.20) 0 32%, transparent 62%),
+      radial-gradient(ellipse at 88% 92%, rgba(240, 178, 122, 0.16) 0 30%, transparent 60%);
+  }
+  .narrative {
+    position: relative;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .narrative section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 6vh 6vw;
+  }
+  .narrative .text {
+    max-width: 560px;
+    background: rgba(255, 252, 245, 0.86);
+    border: 1px solid rgba(96, 84, 66, 0.20);
+    border-radius: 20px;
+    padding: 26px 28px;
+    box-shadow: 0 18px 44px rgba(64, 52, 36, 0.16);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .narrative .text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .narrative h2 {
+    font-size: clamp(28px, 4vw, 46px);
+    line-height: 1.25;
+    margin-bottom: 12px;
+  }
+  .narrative p {
+    font-size: clamp(16px, 1.8vw, 20px);
+    line-height: 2;
+    color: #4d4234;
+  }
+  .narrative .step {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: #8a7a63;
+    margin-bottom: 10px;
+  }
+  #progress-wrap {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 8px;
+    z-index: 10;
+    background: rgba(122, 106, 84, 0.16);
+  }
+  #progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--sage), var(--amber), var(--mint), var(--coral));
+    transition: width 0.15s linear;
+  }
+  #cart {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 252, 245, 0.92);
+    border: 1px solid rgba(96, 84, 66, 0.24);
+    padding: 9px 14px;
+    border-radius: 999px;
+    box-shadow: 0 10px 28px rgba(64, 52, 36, 0.18);
+    font-size: 14px;
+  }
+  #cart-count {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: #fff;
+    font-weight: 700;
+  }
+  #fly-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .fly-dot {
+    position: absolute;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffffff, #f2d9a4 55%, #e0a35e);
+    border: 2px solid rgba(122, 84, 46, 0.55);
+    box-shadow: 0 10px 22px rgba(64, 52, 36, 0.35);
+    transition: left 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      top 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.9s ease, opacity 0.9s ease;
+  }
+  .hotspot {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 5;
+    pointer-events: auto;
+  }
+  .hotspot .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.95);
+    background: radial-gradient(circle,
+      rgba(255, 255, 255, 0.28) 0 38%,
+      rgba(255, 220, 160, 0.55) 55%,
+      rgba(240, 178, 122, 0.22) 72%,
+      transparent 76%);
+    box-shadow: 0 0 0 10px rgba(240, 178, 122, 0.18),
+      0 0 26px rgba(240, 178, 122, 0.55);
+    animation: haloPulse 2.4s ease-in-out infinite;
+  }
+  .hotspot .dot {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #d97742;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  }
+  @keyframes haloPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+  }
+  #discovery {
+    position: fixed;
+    z-index: 15;
+    width: min(320px, calc(100vw - 32px));
+    background: rgba(255, 252, 245, 0.96);
+    border: 1px solid rgba(96, 84, 66, 0.26);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 20px 48px rgba(64, 52, 36, 0.28);
+    display: none;
+  }
+  #discovery.visible { display: block; }
+  #discovery img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: #eee3d0;
+  }
+  #discovery h3 { font-size: 20px; margin-bottom: 6px; }
+  #discovery p {
+    font-size: 14px;
+    line-height: 1.9;
+    color: #5a4d3d;
+    margin-bottom: 14px;
+  }
+  #discovery button {
+    width: 100%;
+    border: 0;
+    border-radius: 999px;
+    padding: 11px 14px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    background: #4f7a5a;
+    cursor: pointer;
+  }
+  #discovery button:active { transform: scale(0.98); }
+  #discovery .close {
+    position: absolute;
+    top: 8px;
+    left: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+  }
+  #island {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 8vh 6vw;
+    pointer-events: none;
+  }
+  #island .card {
+    pointer-events: auto;
+    max-width: 620px;
+    text-align: center;
+    background: rgba(255, 252, 245, 0.92);
+    border: 1px solid rgba(96, 84, 66, 0.22);
+    border-radius: 24px;
+    padding: 34px 32px;
+    box-shadow: 0 24px 60px rgba(64, 52, 36, 0.22);
+  }
+  #island h2 {
+    font-size: clamp(30px, 4.4vw, 48px);
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  #island p {
+    line-height: 2;
+    color: #4d4234;
+    margin-bottom: 22px;
+  }
+  #island a {
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+    background: #c96f3f;
+    padding: 13px 22px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  @media (max-width: 640px) {
+    .narrative section { padding: 4vh 5vw; }
+    .narrative .text { padding: 20px; }
+    .hotspot { width: 54px; height: 54px; }
+    #cart { top: 12px; left: 12px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="paper-grain"></div>
+<div class="wash"></div>
+
+<div id="progress-wrap"><div id="progress"></div></div>
+
+<div id="cart">
+  <span>سبد گردش</span>
+  <span id="cart-count">۰</span>
+</div>
+
+<div id="fly-layer"></div>
+
+<main class="narrative">
+  <section data-start="0" data-end="20">
+    <div class="text">
+      <div class="step">پرده ۲ — ۰ تا ۲۰٪</div>
+      <h2>قدم اول: آرامشِ انتخاب</h2>
+      <p>اینجا عجله‌ای در کار نیست؛ هر قفسه به وقتِ خودش دیده می‌شود.</p>
+    </div>
+  </section>
+
+  <section data-start="25" data-end="50">
+    <div class="text">
+      <div class="step">پرده ۲ — ۲۵ تا ۵۰٪</div>
+      <h2>طبیعت، دست‌نخورده روی رگال</h2>
+      <p>بدون برچسب‌های گیج‌کننده؛ فقط ترکیباتی که نامشان را می‌شناسید.</p>
+    </div>
+  </section>
+
+  <section data-start="55" data-end="80">
+    <div class="text">
+      <div class="step">پرده ۲ — ۵۵ تا ۸۰٪</div>
+      <h2>رنگ‌هایی که واقعی‌اند</h2>
+      <p>طعم‌هایی که از دل طبیعت به سبد امروزتان راه پیدا می‌کنند.</p>
+    </div>
+  </section>
+
+  <section data-start="85" data-end="100">
+    <div class="text">
+      <div class="step">پرده ۲ — ۸۵ تا ۱۰۰٪</div>
+      <h2>بوی تازگی از سمت جزیره می‌آید...</h2>
+      <p></p>
+    </div>
+  </section>
+</main>
+
+<div id="island">
+  <div class="card">
+    <h2>به جزیره رسیدی!</h2>
+    <p>همه‌ی چیزهای خوب را پیدا کردی. حالا می‌توانی به پرده‌ی بعد بروی.</p>
+    <a href="#">ادامه: پرده ۳ — جزیره</a>
+  </div>
+</div>
+
+<div id="discovery">
+  <button class="close" aria-label="بستن">×</button>
+  <img id="discovery-img" alt="" />
+  <h3 id="discovery-title"></h3>
+  <p id="discovery-desc"></p>
+  <button id="add-to-cart">+ افزودن به سبد گردش</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./three.module.min.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf7f1e3);
+scene.fog = new THREE.Fog(0xf7f1e3, 8, 34);
+
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.6, 0);
+
+const ambient = new THREE.AmbientLight(0xfff6e0, 0.85);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xfff1d6, 1.6);
+sun.position.set(4, 8, 2);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -8;
+sun.shadow.camera.right = 8;
+sun.shadow.camera.top = 8;
+sun.shadow.camera.bottom = -8;
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0xcfe8d8, 0.55);
+fill.position.set(-4, 3, 6);
+scene.add(fill);
+
+// ---------- Procedural watercolour textures ----------
+
+function makeCanvasTexture(size, draw) {
+  const c = document.createElement('canvas');
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext('2d');
+  draw(ctx, size);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+function makeWatercolorTexture(base, blotch, light) {
+  return makeCanvasTexture(512, (ctx, s) => {
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, s, s);
+    // soft paper wash
+    for (let i = 0; i < 90; i++) {
+      const x = Math.random() * s;
+      const y = Math.random() * s;
+      const r = 18 + Math.random() * 70;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, light + '55');
+      g.addColorStop(1, light + '00');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // colour blooms
+    for (let i = 0; i < 46; i++) {
+      const x = Math.random() * s;
+      const y = Math.random() * s;
+      const r = 10 + Math.random() * 46;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, blotch + '66');
+      g.addColorStop(0.7, blotch + '22');
+      g.addColorStop(1, blotch + '00');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // faint uneven edges
+    ctx.strokeStyle = 'rgba(90, 70, 50, 0.08)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 12; i++) {
+      ctx.beginPath();
+      ctx.moveTo(Math.random() * s, Math.random() * s);
+      ctx.bezierCurveTo(
+        Math.random() * s, Math.random() * s,
+        Math.random() * s, Math.random() * s,
+        Math.random() * s, Math.random() * s
+      );
+      ctx.stroke();
+    }
+  });
+}
+
+function applyWatercolor(material) {
+  material.map = makeWatercolorTexture('#f2e7cf', '#d9b98c', '#fffaf0');
+  material.roughness = 0.95;
+  return material;
+}
+
+function makeLeafTexture() {
+  return makeCanvasTexture(256, (ctx, s) => {
+    ctx.clearRect(0, 0, s, s);
+    ctx.fillStyle = '#4f7a4a';
+    ctx.beginPath();
+    ctx.ellipse(s / 2, s / 2, s * 0.34, s * 0.18, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#6fae66';
+    ctx.beginPath();
+    ctx.ellipse(s / 2, s / 2, s * 0.22, s * 0.10, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+const leafTexture = makeLeafTexture();
+
+// ---------- Pothos: green on top of every shelf ----------
+
+function makePothos(scale = 1) {
+  const group = new THREE.Group();
+  const potMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#c96f3f', '#a85a32', '#e8a87a'),
+    roughness: 0.9
+  });
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.11, 0.22, 12), potMat);
+  pot.position.y = 0.11;
+  pot.castShadow = true;
+  group.add(pot);
+
+  const leafMat = new THREE.MeshStandardMaterial({
+    map: leafTexture,
+    transparent: true,
+    side: THREE.DoubleSide,
+    roughness: 0.85,
+    alphaTest: 0.1
+  });
+  const leafGeo = new THREE.PlaneGeometry(0.22, 0.14);
+
+  // a loose, trailing crown — like the real pots in the photos
+  for (let i = 0; i < 22; i++) {
+    const leaf = new THREE.Mesh(leafGeo, leafMat);
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 0.05 + Math.random() * 0.22;
+    leaf.position.set(
+      Math.cos(angle) * radius,
+      0.22 + Math.random() * 0.22,
+      Math.sin(angle) * radius
+    );
+    leaf.rotation.set(
+      (Math.random() - 0.5) * 1.4,
+      Math.random() * Math.PI * 2,
+      (Math.random() - 0.5) * 1.4
+    );
+    group.add(leaf);
+  }
+  // trailing vines spilling over the pot edge
+  for (let i = 0; i < 8; i++) {
+    const vine = new THREE.Mesh(leafGeo, leafMat);
+    const angle = (i / 8) * Math.PI * 2 + Math.random() * 0.4;
+    vine.position.set(Math.cos(angle) * 0.20, 0.08 - Math.random() * 0.18, Math.sin(angle) * 0.20);
+    vine.rotation.set(0.9 + Math.random() * 0.5, Math.random() * Math.PI, 0);
+    group.add(vine);
+  }
+  group.scale.setScalar(scale);
+  return group;
+}
+
+// ---------- Shelves: green above, food below ----------
+
+function makeShelf(side, z) {
+  const group = new THREE.Group();
+  const x = side === 'left' ? -1.65 : 1.65;
+  const length = 6;
+
+  const shelfMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#b58a5a', '#8a5f36', '#d9b98c'),
+    roughness: 0.95
+  });
+  const backMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#e8dcc2', '#cbb98f', '#f7efdd'),
+    roughness: 0.95
+  });
+
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.4, length), backMat);
+  back.position.set(x + (side === 'left' ? -0.28 : 0.28), 1.2, z);
+  back.receiveShadow = true;
+  group.add(back);
+
+  // uprights
+  [-length / 2 + 0.15, 0, length / 2 - 0.15].forEach((dz) => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.4, 0.06), shelfMat);
+    post.position.set(x, 1.2, z + dz);
+    post.castShadow = true;
+    group.add(post);
+  });
+
+  const boxGeo = new THREE.BoxGeometry(0.34, 0.32, 0.5);
+  const productMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#e8c07a', '#d97742', '#f2e2b8'),
+    roughness: 0.9
+  });
+
+  const rows = [0.45, 1.0, 1.55, 2.05];
+  rows.forEach((y) => {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, length), shelfMat);
+    shelf.position.set(x, y, z);
+    shelf.castShadow = true;
+    shelf.receiveShadow = true;
+    group.add(shelf);
+
+    for (let i = -2; i <= 2; i++) {
+      const box = new THREE.Mesh(boxGeo, productMat);
+      box.position.set(x, y + 0.18, z + i * 1.1);
+      box.castShadow = true;
+      group.add(box);
+    }
+  });
+
+  // pothos crowning the top of the shelf — the florist feel
+  for (let i = -2; i <= 2; i++) {
+    const pothos = makePothos(1.15);
+    pothos.position.set(x, 2.32, z + i * 1.1);
+    group.add(pothos);
+  }
+
+  return group;
+}
+
+// ---------- White piano + seating ----------
+
+function makePiano() {
+  const group = new THREE.Group();
+  const whiteMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#fdfbf6', '#e8e2d2', '#ffffff'),
+    roughness: 0.6
+  });
+  const darkMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5 });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.18, 0.55), whiteMat);
+  body.position.set(-1.7, 0.78, 3.2);
+  body.castShadow = true;
+  group.add(body);
+
+  const top = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.05, 0.62), whiteMat);
+  top.position.set(-1.7, 0.92, 3.2);
+  top.castShadow = true;
+  group.add(top);
+
+  // keys
+  for (let i = 0; i < 14; i++) {
+    const key = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.03, 0.14), i % 2 ? darkMat : whiteMat);
+    key.position.set(-1.7 - 0.6 + i * 0.093, 0.89, 3.52);
+    group.add(key);
+  }
+
+  // legs
+  [[-0.6, -0.2], [0.6, -0.2], [-0.6, 0.2], [0.6, 0.2]].forEach(([dx, dz]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.72, 0.07), whiteMat);
+    leg.position.set(-1.7 + dx, 0.36, 3.2 + dz);
+    leg.castShadow = true;
+    group.add(leg);
+  });
+
+  // bench
+  const bench = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.07, 0.32), whiteMat);
+  bench.position.set(-1.7, 0.48, 3.85);
+  bench.castShadow = true;
+  group.add(bench);
+
+  // pothos around the piano, as in the photos
+  const p1 = makePothos(1.2);
+  p1.position.set(-2.55, 0, 3.2);
+  group.add(p1);
+  const p2 = makePothos(1.05);
+  p2.position.set(-0.85, 0, 3.9);
+  group.add(p2);
+  const p3 = makePothos(1.0);
+  p3.position.set(-1.7, 0.95, 2.85);
+  group.add(p3);
+
+  return group;
+}
+
+function makeTable(x, z, rotationY = 0) {
+  const group = new THREE.Group();
+  const woodMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#c89a68', '#9a6b3d', '#e0bc8a'),
+    roughness: 0.9
+  });
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.06, 20), woodMat);
+  top.position.set(0, 0.72, 0);
+  top.castShadow = true;
+  group.add(top);
+  const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.72, 10), woodMat);
+  leg.position.y = 0.36;
+  group.add(leg);
+
+  // chairs
+  [[0.65, 0], [-0.65, 0], [0, 0.65], [0, -0.65]].forEach(([dx, dz]) => {
+    const chair = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.06, 0.38), woodMat);
+    chair.position.set(dx, 0.45, dz);
+    chair.castShadow = true;
+    group.add(chair);
+    const chairLeg = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.45, 0.05), woodMat);
+    chairLeg.position.set(dx, 0.22, dz);
+    group.add(chairLeg);
+  });
+
+  group.position.set(x, 0, z);
+  group.rotation.y = rotationY;
+  return group;
+}
+
+// ---------- Wooden partition with potted plants ----------
+
+function makePartition(z) {
+  const group = new THREE.Group();
+  const woodMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#b98a5e', '#8a5f36', '#d9b98c'),
+    roughness: 0.95
+  });
+  const slatSpacing = 0.32;
+  for (let i = 0; i < 11; i++) {
+    const slat = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1.9, 0.07), woodMat);
+    slat.position.set(-1.6 + i * slatSpacing, 0.95, z);
+    slat.castShadow = true;
+    group.add(slat);
+  }
+  const topRail = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.07, 0.09), woodMat);
+  topRail.position.set(0, 1.92, z);
+  group.add(topRail);
+  const bottomRail = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.07, 0.09), woodMat);
+  bottomRail.position.set(0, 0.08, z);
+  group.add(bottomRail);
+
+  // potted plants along the partition, like the wooden screen in the photos
+  for (let i = 0; i < 5; i++) {
+    const pothos = makePothos(1.1);
+    pothos.position.set(-1.4 + i * 0.7, 0, z + 0.35);
+    group.add(pothos);
+  }
+  return group;
+}
+
+// ---------- Flower stand — part of the store ----------
+
+function makeFlowerStand() {
+  const group = new THREE.Group();
+  const standMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#a8825c', '#7a5a38', '#c9a878'),
+    roughness: 0.95
+  });
+
+  const tiers = [
+    { y: 0.25, width: 1.8, depth: 0.7 },
+    { y: 0.65, width: 1.5, depth: 0.6 },
+    { y: 1.05, width: 1.2, depth: 0.5 }
+  ];
+
+  tiers.forEach((tier) => {
+    const board = new THREE.Mesh(new THREE.BoxGeometry(tier.width, 0.06, tier.depth), standMat);
+    board.position.set(1.65, tier.y, 26.2);
+    board.castShadow = true;
+    board.receiveShadow = true;
+    group.add(board);
+    for (let i = 0; i < 3; i++) {
+      const pothos = makePothos(0.9 + (tier.y === 1.05 ? 0.15 : 0));
+      pothos.position.set(1.65 + (i - 1) * (tier.width / 3), tier.y + 0.05, 26.2);
+      group.add(pothos);
+    }
+  });
+
+  // simple wooden frame
+  const frameGeo = new THREE.BoxGeometry(0.06, 1.3, 0.06);
+  [[-0.85, -0.3], [0.85, -0.3], [-0.85, 0.3], [0.85, 0.3]].forEach(([dx, dz]) => {
+    const post = new THREE.Mesh(frameGeo, standMat);
+    post.position.set(1.65 + dx, 0.65, 26.2 + dz);
+    group.add(post);
+  });
+
+  return group;
+}
+
+// ---------- Island at the end ----------
+
+function makeIsland() {
+  const group = new THREE.Group();
+  const islandMat = new THREE.MeshStandardMaterial({
+    map: makeWatercolorTexture('#e6d3ac', '#c9a878', '#f2e6c8'),
+    roughness: 0.9
+  });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.8, 0.9, 24), islandMat);
+  base.position.set(0, 0.45, 30);
+  base.castShadow = true;
+  base.receiveShadow = true;
+  group.add(base);
+
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(1.85, 1.85, 0.08, 24), islandMat);
+  top.position.set(0, 0.94, 30);
+  top.castShadow = true;
+  group.add(top);
+
+  // pothos ring around the island
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    const pothos = makePothos(1.0);
+    pothos.position.set(Math.cos(angle) * 1.5, 0.98, 30 + Math.sin(angle) * 1.5);
+    group.add(pothos);
+  }
+  return group;
+}
+
+// ---------- Floor ----------
+
+const floorMat = new THREE.MeshStandardMaterial({
+  map: makeWatercolorTexture('#e8dcc2', '#cbb98f', '#f7efdd'),
+  roughness: 0.95
+});
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(10, 36), floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.set(0, 0, 15);
+floor.receiveShadow = true;
+scene.add(floor);
+
+// ---------- Build the store from the photos ----------
+
+scene.add(makeShelf('left', 6));
+scene.add(makeShelf('right', 6));
+scene.add(makeShelf('left', 12));
+scene.add(makeShelf('right', 12));
+scene.add(makeShelf('left', 18));
+scene.add(makeShelf('right', 18));
+scene.add(makeShelf('left', 24));
+scene.add(makeShelf('right', 24));
+
+scene.add(makePiano());
+
+// seating area, ringed with pothos
+scene.add(makeTable(1.7, 4.2, 0.4));
+scene.add(makeTable(1.9, 5.6, -0.3));
+const seatPothos1 = makePothos(1.25);
+seatPothos1.position.set(1.0, 0, 4.2);
+scene.add(seatPothos1);
+const seatPothos2 = makePothos(1.15);
+seatPothos2.position.set(2.5, 0, 5.6);
+scene.add(seatPothos2);
+const seatPothos3 = makePothos(1.05);
+seatPothos3.position.set(1.2, 0, 6.4);
+scene.add(seatPothos3);
+
+scene.add(makePartition(9.5));
+scene.add(makePartition(21.5));
+
+scene.add(makeFlowerStand());
+scene.add(makeIsland());
+
+// ---------- Products & hotspots ----------
+
+const products = [
+  {
+    id: 'honey',
+    name: 'عسل طبیعی',
+    image: '../hyper-helz-3d-store/products/asal.jpg',
+    desc: 'از دل طبیعت، برای یک صبحانه‌ی آرام.',
+    position: new THREE.Vector3(-0.55, 1.02, 8.5),
+    shelfSide: 'right'
+  },
+  {
+    id: 'quinoa',
+    name: 'کینوا',
+    image: '../hyper-helz-3d-store/products/kino.jpg',
+    desc: 'دانه‌ای سبک برای یک وعده‌ی سالم.',
+    position: new THREE.Vector3(0.55, 1.02, 14.5),
+    shelfSide: 'left'
+  },
+  {
+    id: 'bread',
+    name: 'نان پروتئینی',
+    image: '../hyper-helz-3d-store/products/nan.jpg',
+    desc: 'نانی برای روزهای پرانرژی.',
+    position: new THREE.Vector3(-0.55, 1.02, 20.5),
+    shelfSide: 'right'
+  }
+];
+
+const narrative = document.querySelector('.narrative');
+const hotspots = [];
+
+products.forEach((product) => {
+  const el = document.createElement('div');
+  el.className = 'hotspot';
+  el.innerHTML = '<div class="ring"></div><div class="dot"></div>';
+  el.addEventListener('click', (event) => {
+    event.stopPropagation();
+    openDiscovery(product, el);
+  });
+  narrative.appendChild(el);
+  hotspots.push({ product, el });
+});
+
+// ---------- Discovery card ----------
+
+const discovery = document.getElementById('discovery');
+const discoveryImg = document.getElementById('discovery-img');
+const discoveryTitle = document.getElementById('discovery-title');
+const discoveryDesc = document.getElementById('discovery-desc');
+const addToCartBtn = document.getElementById('add-to-cart');
+const cartCountEl = document.getElementById('cart-count');
+const flyLayer = document.getElementById('fly-layer');
+let cartCount = 0;
+let currentProduct = null;
+
+function openDiscovery(product, hotspotEl) {
+  currentProduct = product;
+  discoveryImg.src = product.image;
+  discoveryImg.alt = product.name;
+  discoveryTitle.textContent = product.name;
+  discoveryDesc.textContent = product.desc;
+  discovery.classList.add('visible');
+  positionDiscovery(hotspotEl);
+}
+
+function positionDiscovery(hotspotEl) {
+  const rect = hotspotEl.getBoundingClientRect();
+  const cardWidth = discovery.offsetWidth || 320;
+  const cardHeight = discovery.offsetHeight || 300;
+  let left = rect.left + rect.width / 2 - cardWidth / 2;
+  let top = rect.top - cardHeight - 18;
+  if (top < 16) top = rect.bottom + 18;
+  // keep the card inside the viewport width, with JS clamping
+  left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
+  top = Math.max(16, Math.min(top, window.innerHeight - cardHeight - 16));
+  discovery.style.left = left + 'px';
+  discovery.style.top = top + 'px';
+}
+
+discovery.querySelector('.close').addEventListener('click', () => {
+  discovery.classList.remove('visible');
+});
+
+document.addEventListener('click', (event) => {
+  if (!discovery.contains(event.target) && !event.target.closest('.hotspot')) {
+    discovery.classList.remove('visible');
+  }
+});
+
+function flyToCart(startX, startY) {
+  const cartRect = document.getElementById('cart').getBoundingClientRect();
+  const dot = document.createElement('div');
+  dot.className = 'fly-dot';
+  dot.style.left = startX + 'px';
+  dot.style.top = startY + 'px';
+  dot.style.transform = 'translate(-50%, -50%) scale(1)';
+  flyLayer.appendChild(dot);
+  requestAnimationFrame(() => {
+    dot.style.left = (cartRect.left + cartRect.width / 2) + 'px';
+    dot.style.top = (cartRect.top + cartRect.height / 2) + 'px';
+    dot.style.transform = 'translate(-50%, -50%) scale(0.35)';
+    dot.style.opacity = '0.4';
+  });
+  setTimeout(() => dot.remove(), 1000);
+}
+
+addToCartBtn.addEventListener('click', () => {
+  if (!currentProduct) return;
+  cartCount++;
+  cartCountEl.textContent = String(cartCount).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  const rect = discovery.getBoundingClientRect();
+  flyToCart(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  setTimeout(() => discovery.classList.remove('visible'), 450);
+});
+
+// ---------- Scroll walk down the aisle ----------
+
+const progressBar = document.getElementById('progress');
+const sections = [...document.querySelectorAll('.narrative section')];
+const maxScroll = () => document.body.scrollHeight - window.innerHeight;
+let scrollProgress = 0;
+let mouseX = 0;
+let mouseY = 0;
+
+window.addEventListener('scroll', () => {
+  scrollProgress = maxScroll() > 0 ? window.scrollY / maxScroll() : 0;
+  progressBar.style.width = (scrollProgress * 100) + '%';
+  sections.forEach((section) => {
+    const start = Number(section.dataset.start) / 100;
+    const end = Number(section.dataset.end) / 100;
+    const text = section.querySelector('.text');
+    if (scrollProgress >= start && scrollProgress <= end) {
+      text.classList.add('visible');
+    } else {
+      text.classList.remove('visible');
+    }
+  });
+}, { passive: true });
+
+window.addEventListener('mousemove', (event) => {
+  mouseX = (event.clientX / window.innerWidth - 0.5) * 2;
+  mouseY = (event.clientY / window.innerHeight - 0.5) * 2;
+});
+
+// initial state
+progressBar.style.width = '0%';
+sections[0].querySelector('.text').classList.add('visible');
+
+// ---------- Hotspot projection with parallax lift ----------
+
+const vector = new THREE.Vector3();
+
+function updateHotspots() {
+  hotspots.forEach(({ product, el }) => {
+    vector.copy(product.position).project(camera);
+    const visible = vector.z < 1;
+    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+    // parallax lift: the ring sits slightly above its product point
+    const lift = 18 + mouseY * -6;
+    el.style.left = x + 'px';
+    // hotspots live inside the scrolling .narrative, but x/y are viewport coords:
+    // add scrollY so the ring stays glued to its product while the page scrolls.
+    el.style.top = (y - lift + window.scrollY) + 'px';
+    el.style.display = visible ? 'block' : 'none';
+    el.style.transform = 'translate(-50%, -50%)';
+  });
+  if (discovery.classList.contains('visible')) {
+    const current = hotspots.find((h) => h.product === currentProduct);
+    if (current) positionDiscovery(current.el);
+  }
+}
+
+// ---------- Animation loop ----------
+
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // camera walks the aisle as you scroll
+  const camZ = scrollProgress * 30;
+  camera.position.set(
+    mouseX * 0.25,
+    1.6 + mouseY * -0.08,
+    camZ
+  );
+  camera.lookAt(mouseX * 0.4, 1.35, camZ + 6);
+
+  // gentle watercolour sway on the pothos
+  scene.traverse((obj) => {
+    if (obj.isMesh && obj.material && obj.material.map === leafTexture) {
+      obj.rotation.z += Math.sin(t * 1.2 + obj.position.x * 2) * 0.0006;
+    }
+  });
+
+  updateHotspots();
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
