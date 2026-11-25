@@ -147,6 +147,46 @@
     #drawer .info-line { font-size: 13.5px; line-height: 2; color: #2b2620; padding: 6px 0; }
     #drawer .info-line b { color: #7a9b6d; }
 
+
+    /* ---------- قدم ۴ — بخش‌های محتوایی بعد از فیلم ---------- */
+    .content-section {
+      position: relative; z-index: 70; background: #f6f4ef; color: #2b2620;
+      padding: 56px 20px 64px; font-family: Tahoma, sans-serif;
+    }
+    .content-section .sec-inner { max-width: 1060px; margin: 0 auto; }
+    .content-section .sec-kicker {
+      font-size: 12.5px; font-weight: 700; color: #7a9b6d; letter-spacing: 0.5px; margin-bottom: 8px;
+    }
+    .content-section h2.sec-title { font-size: 26px; line-height: 1.4; margin: 0 0 8px; }
+    .content-section .sec-sub { font-size: 14.5px; line-height: 2; color: #5c554a; margin: 0 0 28px; max-width: 620px; }
+    .products-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+    }
+    @media (min-width: 760px) { .products-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+    @media (min-width: 1080px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
+    .product-card {
+      background: #fff; border: 1px solid #e8e2d4; border-radius: 18px;
+      padding: 20px 16px 16px; display: flex; flex-direction: column; gap: 6px;
+      box-shadow: 0 2px 10px rgba(43,38,32,0.05);
+    }
+    .product-card .p-emoji {
+      width: 52px; height: 52px; border-radius: 14px; background: #eef3e6;
+      display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 6px;
+    }
+    .product-card .p-name { font-size: 15.5px; font-weight: 700; line-height: 1.6; }
+    .product-card .p-sub { font-size: 12.5px; line-height: 1.8; color: #5c554a; flex: 1; }
+    .product-card .p-add {
+      margin-top: 10px; border: none; cursor: pointer; font-family: Tahoma, sans-serif;
+      font-size: 13.5px; font-weight: 700; color: #fff; background: #7a9b6d;
+      border-radius: 99px; padding: 10px 14px;
+    }
+    .product-card .p-add.added { background: #4c6b41; }
+    .products-cta { margin-top: 22px; text-align: center; }
+    .products-cta button {
+      border: none; cursor: pointer; font-family: Tahoma, sans-serif;
+      font-size: 14.5px; font-weight: 700; color: #7a9b6d; background: transparent;
+      border: 1.5px solid #7a9b6d; border-radius: 99px; padding: 11px 26px;
+    }
   </style>
 </head>
 <body>
@@ -157,6 +197,18 @@
   </div>
 
   <div id="scroll-spacer"></div>
+  <section class="content-section" id="products-section">
+    <div class="sec-inner">
+      <div class="sec-kicker">ویترین فروشگاه</div>
+      <h2 class="sec-title">محصولات منتخب هایپر هلز</h2>
+      <p class="sec-sub">محصولات سالم و منتخب فروشگاه — بدون قند اضافه، طبیعی و ارگانیک. برای سفارش، محصول را به سبد اضافه کنید و از واتساپ سفارش بدهید.</p>
+      <div class="products-grid" id="products-grid"></div>
+      <div class="products-cta">
+        <button type="button" id="view-cart-btn">مشاهده‌ی سبد خرید</button>
+      </div>
+    </div>
+  </section>
+
 
   <div id="station-bar">
     <span class="dot on"></span><span class="dot"></span><span class="dot"></span>
@@ -454,6 +506,33 @@
         if (drawerTitle.textContent === 'سبد خرید') renderCart(); else renderProducts();
       }
     });
+
+
+    /* ---------- قدم ۴ — بخش ۱: ویترین محصولات ---------- */
+    const PROD_EMOJI = {
+      pashmak: '🍬', honey: '🍯', coffee: '☕', nugget: '🌾',
+      pomegran: '🍎', bread: '🍞', soap: '🧼',
+    };
+    const productsGrid = document.getElementById('products-grid');
+    productsGrid.innerHTML = PRODUCTS.map(function (p) {
+      const q = cart[p.id] || 0;
+      return '<article class="product-card">' +
+        '<div class="p-emoji">' + (PROD_EMOJI[p.id] || '🌿') + '</div>' +
+        '<div class="p-name">' + p.name + '</div>' +
+        '<div class="p-sub">' + p.sub + '</div>' +
+        '<button type="button" class="p-add' + (q ? ' added' : '') + '" data-add="' + p.id + '">' +
+        (q ? '✓ در سبد (' + toFaDigits(q) + ')' : 'افزودن به سبد') + '</button></article>';
+    }).join('');
+    productsGrid.addEventListener('click', function (e) {
+      const id = e.target.getAttribute('data-add');
+      if (!id) return;
+      cart[id] = (cart[id] || 0) + 1;
+      updateCartBadge();
+      const btn = e.target;
+      btn.classList.add('added');
+      btn.textContent = '✓ در سبد (' + toFaDigits(cart[id]) + ')';
+    });
+    document.getElementById('view-cart-btn').addEventListener('click', function () { openDrawer('cart'); });
 
     /* ---------- دکمه‌های کارت ---------- */
     function cardAction() {
