@@ -187,6 +187,33 @@
       font-size: 14.5px; font-weight: 700; color: #7a9b6d; background: transparent;
       border: 1.5px solid #7a9b6d; border-radius: 99px; padding: 11px 26px;
     }
+
+    /* ---------- قدم ۴ — بخش ۲: بنر پکیج سلامت ---------- */
+    .package-banner {
+      background: linear-gradient(135deg, #3d5a34 0%, #5d7d4f 55%, #7a9b6d 100%);
+      border-radius: 22px; color: #fff; padding: 34px 24px 30px;
+      box-shadow: 0 8px 28px rgba(61,90,52,0.28);
+    }
+    .package-banner .sec-kicker { color: #d9e8c9; }
+    .package-banner h2.sec-title { color: #fff; }
+    .package-banner .sec-sub { color: rgba(255,255,255,0.88); margin-bottom: 18px; }
+    .package-items { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .package-items span {
+      background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 99px; padding: 7px 14px; font-size: 13px; font-weight: 700;
+    }
+    .package-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .package-actions .pkg-add {
+      border: none; cursor: pointer; font-family: Tahoma, sans-serif;
+      font-size: 14.5px; font-weight: 700; color: #3d5a34; background: #fff;
+      border-radius: 99px; padding: 12px 24px;
+    }
+    .package-actions .pkg-add.added { background: #eef3e6; color: #4c6b41; }
+    .package-actions .pkg-wa {
+      display: inline-block; text-decoration: none; font-size: 14.5px; font-weight: 700;
+      color: #fff; border: 1.5px solid rgba(255,255,255,0.7);
+      border-radius: 99px; padding: 11px 24px;
+    }
   </style>
 </head>
 <body>
@@ -205,6 +232,25 @@
       <div class="products-grid" id="products-grid"></div>
       <div class="products-cta">
         <button type="button" id="view-cart-btn">مشاهده‌ی سبد خرید</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section" id="package-section">
+    <div class="sec-inner">
+      <div class="package-banner">
+        <div class="sec-kicker">معرفی ویژه‌ی هفته</div>
+        <h2 class="sec-title">پکیج صبحانه‌ی سالم</h2>
+        <p class="sec-sub">شروع روز با عسل طبیعی، نان سالم و قهوه‌ی تخصصی — هر سه با هم، یک صبحانه‌ی کامل و بدون قند اضافه.</p>
+        <div class="package-items">
+          <span>🍯 عسل پروبیوتیک پروشهد</span>
+          <span>🍞 نان یوسف</span>
+          <span>☕ قهوه هسته خرما</span>
+        </div>
+        <div class="package-actions">
+          <button type="button" class="pkg-add" id="pkg-add-btn">افزودن پکیج به سبد</button>
+          <a class="pkg-wa" id="pkg-wa-btn" href="#" target="_blank" rel="noopener">سفارش در واتساپ</a>
+        </div>
       </div>
     </div>
   </section>
@@ -511,7 +557,7 @@
     /* ---------- قدم ۴ — بخش ۱: ویترین محصولات ---------- */
     const PROD_EMOJI = {
       pashmak: '🍬', honey: '🍯', coffee: '☕', nugget: '🌾',
-      pomegran: '🍎', bread: '🍞', soap: '🧼',
+      pomegran: '🫙', bread: '🍞', soap: '🧼',
     };
     const productsGrid = document.getElementById('products-grid');
     productsGrid.innerHTML = PRODUCTS.map(function (p) {
@@ -533,6 +579,31 @@
       btn.textContent = '✓ در سبد (' + toFaDigits(cart[id]) + ')';
     });
     document.getElementById('view-cart-btn').addEventListener('click', function () { openDrawer('cart'); });
+
+
+    /* ---------- قدم ۴ — بخش ۲: پکیج صبحانه‌ی سالم ---------- */
+    const PKG_ITEMS = ['honey', 'bread', 'coffee'];
+    const pkgAddBtn = document.getElementById('pkg-add-btn');
+    const pkgWaBtn = document.getElementById('pkg-wa-btn');
+    function pkgWaLink() {
+      const lines = ['سلام هایپر هلز، می‌خواهم پکیج صبحانه‌ی سالم را سفارش بدهم:'];
+      PKG_ITEMS.forEach(function (id) {
+        const p = PRODUCTS.find(function (x) { return x.id === id; });
+        if (p) lines.push('• ' + p.name);
+      });
+      return 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(lines.join('\n'));
+    }
+    pkgWaBtn.href = pkgWaLink();
+    pkgAddBtn.addEventListener('click', function () {
+      PKG_ITEMS.forEach(function (id) { cart[id] = (cart[id] || 0) + 1; });
+      updateCartBadge();
+      pkgAddBtn.classList.add('added');
+      pkgAddBtn.textContent = '✓ پکیج در سبد است';
+      productsGrid.querySelectorAll('.p-add').forEach(function (btn) {
+        const id = btn.getAttribute('data-add');
+        if (cart[id]) { btn.classList.add('added'); btn.textContent = '✓ در سبد (' + toFaDigits(cart[id]) + ')'; }
+      });
+    });
 
     /* ---------- دکمه‌های کارت ---------- */
     function cardAction() {
