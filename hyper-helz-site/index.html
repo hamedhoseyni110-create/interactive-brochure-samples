@@ -263,12 +263,15 @@
     window.addEventListener('resize', function () { resizeCanvas(); });
 
     let lastSeek = -1;
+    let seeking = false;
+    video.addEventListener('seeked', function () { seeking = false; });
     function scrubTo(filmProgress) {
-      if (!videoReady) return;
+      if (!videoReady || seeking) return;
       const t = filmProgress * videoDuration;
-      if (Math.abs(t - lastSeek) < 0.03) return; /* seek اضافی نکن */
+      if (Math.abs(t - lastSeek) < 0.08) return; /* seek اضافی نکن */
       lastSeek = t;
-      try { video.currentTime = t; } catch (e) { /* ignore */ }
+      seeking = true;
+      try { video.currentTime = t; } catch (e) { seeking = false; }
     }
 
     /* ---------- منحنی اسکرول → فیلم (با فیکس میز) ---------- */
@@ -511,11 +514,21 @@
 
     (async function boot() {
       updateLoaderUI(0, 100, 'در حال لود فیلم…');
-      /* صبر کن تا ویدیو آماده‌ی پخش شود (حداکثر ۲۰ ثانیه) */
+      /* صبر کن تا ویدیو آماده‌ی پخش شود و بخش خوبی بافر شده باشد (حداکثر ۲۰ ثانیه) —
+         seek اول باید از حافظه بیاید، نه از شبکه */
       const ready = new Promise(function (resolve) {
-        if (video.readyState >= 2) { resolve(); return; }
-        video.addEventListener('canplay', resolve, { once: true });
-        setTimeout(resolve, 20000);
+        let done = false;
+        const finish = function () { if (!done) { done = true; resolve(); } };
+        const bufferedEnough = function () {
+          try {
+            if (video.buffered.length > 0 && video.buffered.end(0) >= videoDuration * 0.5) return true;
+          } catch (e) { /* ignore */ }
+          return false;
+        };
+        if (video.readyState >= 2 && bufferedEnough()) { finish(); return; }
+        video.addEventListener('canplaythrough', finish, { once: true });
+        video.addEventListener('progress', function () { if (bufferedEnough()) finish(); });
+        setTimeout(finish, 20000);
       });
       /* نوار لودر را با میزان بافر ویدیو جلو ببر */
       const tick = setInterval(function () {
